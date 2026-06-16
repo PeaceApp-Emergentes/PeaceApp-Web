@@ -62,6 +62,16 @@ export class AlertApiService {
         }
     }
 
+    async createEmergency(data) {
+        return this.create({
+            ...data,
+            type: "EMERGENCY",
+            description: `[EMERGENCY] ${data.description || "Emergencia ciudadana"}`,
+            imageUrl: data.imageUrl || "",
+            reportId: data.reportId || null
+        });
+    }
+
     // DELETE all alerts
     async deleteByUserId(userId) {
         try {

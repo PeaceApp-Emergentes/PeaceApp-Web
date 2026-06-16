@@ -1,0 +1,97 @@
+
+> web-app-project@0.0.0 dev
+> vite --host 0.0.0.0
+
+
+  [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m326[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://172.26.48.1:[1m5173[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.100.7:[1m5173[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.56.1:[1m5173[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.59.1:[1m5173[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.153.1:[1m5173[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://172.31.128.1:[1m5173[22m/[39m
+[2m10:55:56 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/toolbar/toolbar-citizen.component.vue[22m
+[2m10:56:17 p. m.[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/index.js[22m
+[2m10:57:26 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/notifications/municipality-emergency-notifier.component.vue?vue&type=style&index=0&scoped=33939abb&lang.css, /src/components/notifications/municipality-emergency-notifier.component.vue[22m
+[2m10:58:05 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/toolbar/toolbar-citizen.component.vue[22m
+[2m10:58:05 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/notifications/municipality-emergency-notifier.component.vue?vue&type=style&index=0&scoped=33939abb&lang.css, /src/components/notifications/municipality-emergency-notifier.component.vue[22m
+[2m10:59:29 p. m.[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/index.js[22m
+[2m10:59:29 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/toolbar/toolbar-citizen.component.vue[22m
+[2m10:59:29 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/notifications/municipality-emergency-notifier.component.vue[22m
+[2m10:59:29 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/home/main.page.vue[22m
+[2m10:59:29 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/dialogs/user-sign-up.component.vue[22m
+[2m10:59:29 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue[22m
+[2m10:59:29 p. m.[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/index.js[22m
+[2m11:02:59 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue[22m
+[2m11:03:27 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue[22m
+[2m11:04:22 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue[22m
+[2m11:04:32 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue?vue&type=style&index=0&scoped=fab59d8a&lang.css[22m
+[2m11:10:54 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/profile/profile.page.vue, /src/pages/home/main.page.vue, /src/pages/reports/report-form.page.vue, /src/pages/reports/user-report-list.component.vue, /src/pages/auth/password-recover.page.vue, /src/pages/auth/final-recover.page.vue, /src/pages/reports/report-detail.component.vue, /src/components/dialogs/user-sign-up.component.vue, /src/pages/profile/user-edit-profile.page.vue[22m
+[2m11:10:54 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue, /src/pages/municipality/municipality-dashboard.page.vue?vue&type=style&index=0&scoped=fab59d8a&lang.css[22m
+[2m11:16:44 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue?vue&type=style&index=0&scoped=fab59d8a&lang.css[22m
+[2m11:18:19 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue[22m
+[2m11:18:26 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue?vue&type=style&index=0&scoped=fab59d8a&lang.css[22m
+[2m11:18:55 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue[22m
+[2m11:19:05 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue?vue&type=style&index=0&scoped=fab59d8a&lang.css[22m
+[2m11:24:39 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue[22m
+[2m11:25:27 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue[22m
+[2m11:25:36 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue[22m
+[2m11:25:43 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue[22m
+[2m11:26:21 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue[22m
+[2m11:26:32 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue[22m
+[2m11:26:38 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue[22m
+[2m11:26:59 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue?vue&type=style&index=0&scoped=3213e66f&lang.css[22m
+[2m11:27:09 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue?vue&type=style&index=0&scoped=3213e66f&lang.css[22m
+[2m11:27:13 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue[22m
+[2m11:27:24 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue[22m
+[2m11:27:50 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue[22m
+[2m11:31:31 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue[22m
+[2m11:31:42 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue[22m
+[2m11:31:51 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue?vue&type=style&index=0&scoped=3213e66f&lang.css[22m
+[2m11:44:05 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/home/main.page.vue[22m
+[2m11:44:29 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/home/main.page.vue[22m
+[2m11:45:13 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/dialogs/user-sign-up.component.vue[22m
+[2m11:48:34 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/home/main.page.vue, /src/pages/home/main.page.vue?vue&type=style&index=0&lang.css[22m
+[2m12:19:29 a. m.[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/index.js[22m
+[2m12:19:29 a. m.[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/index.js[22m
+[2m12:19:42 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/profile/user-profile.page.vue[22m
+[2m12:19:50 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/profile/user-profile.page.vue, /src/pages/profile/user-profile.page.vue?vue&type=style&index=0&scoped=8a20c0aa&lang.css[22m
+[2m12:58:54 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/dialogs/user-sign-up.component.vue?vue&type=style&index=0&scoped=c6da38f3&lang.css, /src/components/dialogs/user-sign-up.component.vue[22m
+[2m1:00:28 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/dialogs/user-sign-up.component.vue, /src/components/dialogs/user-sign-up.component.vue?vue&type=style&index=0&scoped=c6da38f3&lang.css[22m
+[2m3:27:41 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/reports/report-form.page.vue, /src/pages/reports/user-report-list.component.vue, /src/pages/reports/report-detail.component.vue, /src/pages/municipality/municipality-dashboard.page.vue, /src/pages/map/map-citizen.page.vue[22m
+[2m3:27:41 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue[22m
+[2m3:27:41 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/reports/report-form.page.vue, /src/pages/reports/user-report-list.component.vue, /src/pages/reports/report-detail.component.vue, /src/pages/municipality/municipality-dashboard.page.vue, /src/pages/map/map-citizen.page.vue[22m
+[2m3:27:55 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue[22m
+[2m3:28:13 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue[22m
+[2m3:28:13 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/notifications/municipality-emergency-notifier.component.vue[22m
+[2m3:28:34 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/notifications/municipality-emergency-notifier.component.vue[22m
+[2m3:35:45 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue[22m
+[2m3:35:45 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/notifications/municipality-emergency-notifier.component.vue[22m
+[2m3:43:00 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/notifications/municipality-emergency-notifier.component.vue[22m
+[2m3:43:00 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue[22m
+[2m3:43:55 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/notifications/municipality-emergency-notifier.component.vue[22m
+[2m3:58:59 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/dialogs/user-sign-up.component.vue[22m
+[2m3:59:06 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/dialogs/user-sign-up.component.vue[22m
+[2m3:59:20 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/dialogs/user-sign-up.component.vue[22m
+[2m3:59:33 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/profile/user-edit-profile.page.vue[22m
+[2m4:19:22 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue[22m
+[2m4:19:31 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue?vue&type=style&index=0&scoped=fab59d8a&lang.css[22m
+[2m4:32:53 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/notifications/municipality-emergency-notifier.component.vue[22m
+[2m4:34:44 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/dialogs/user-sign-up.component.vue, /src/components/dialogs/user-sign-up.component.vue?vue&type=style&index=0&scoped=c6da38f3&lang.css[22m
+[2m4:35:04 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/dialogs/user-sign-up.component.vue[22m
+[2m4:36:07 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/profile/user-edit-profile.page.vue[22m
+[2m4:36:51 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue[22m
+[2m4:38:09 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue[22m
+[2m4:38:33 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue, /src/pages/map/map-citizen.page.vue?vue&type=style&index=0&scoped=3213e66f&lang.css[22m
+[2m4:39:12 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue[22m
+[2m4:39:30 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue[22m
+[2m4:40:43 a. m.[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/locales/es.json[22m
+[2m4:41:11 a. m.[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/locales/en.json[22m
+[2m4:42:19 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/municipality/municipality-dashboard.page.vue[22m
+[2m4:48:56 a. m.[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/locales/es.json[22m
+[2m4:49:52 a. m.[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/locales/es.json[22m
+[2m4:50:19 a. m.[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/locales/es.json[22m
+[2m4:50:43 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/dialogs/user-sign-up.component.vue, /src/components/dialogs/user-sign-up.component.vue?vue&type=style&index=0&scoped=c6da38f3&lang.css[22m
+[2m4:51:48 a. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/map/map-citizen.page.vue, /src/pages/map/map-citizen.page.vue?vue&type=style&index=0&scoped=3213e66f&lang.css[22m

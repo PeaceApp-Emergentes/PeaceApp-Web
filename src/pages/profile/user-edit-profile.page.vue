@@ -2,24 +2,36 @@
   <div class="popup">
     <form @submit.prevent="updateProfile">
       <div class="flex">
-        <div class="field">
+        <div v-if="!isMunicipality" class="field">
           <label>{{ $t('userEdit.first_name') }}</label>
           <input class="input-style" type="text" v-model="name" required />
         </div>
-        <div class="field">
+        <div v-if="!isMunicipality" class="field">
           <label>{{ $t('userEdit.last_name') }}</label>
           <input class="input-style" type="text" v-model="lastname" required />
+        </div>
+        <div v-if="isMunicipality" class="field">
+          <label>{{ $t("userForm.municipality_name") }}</label>
+          <input class="input-style" type="text" v-model="municipalityName" required />
+        </div>
+        <div v-if="isMunicipality" class="field">
+          <label>{{ $t("userForm.district") }}</label>
+          <input class="input-style" type="text" v-model="district" required />
         </div>
       </div>
 
       <div class="flex">
+        <div v-if="isMunicipality" class="field">
+          <label>{{ $t("userForm.city") }}</label>
+          <input class="input-style" type="text" v-model="city" required />
+        </div>
         <div class="field">
           <label>{{ $t('userEdit.email') }}</label>
           <input class="input-style" type="email" v-model="email" required />
         </div>
         <div class="field">
           <label>{{ $t('userEdit.phone') }}</label>
-          <input class="input-style" type="text" v-model="phonenumber" required />
+          <input class="input-style" type="tel" v-model="phonenumber" required />
         </div>
       </div>
 
@@ -31,34 +43,43 @@
       </div>
 
       <div class="image-container" v-if="profileImage">
-        <img :src="profileImage" alt="Preview" class="preview-img" />
+        <img :src="profileImage" :alt="$t('userEdit.imagePreview')" class="preview-img" />
       </div>
 
       <div class="buttons">
-        <button type="submit">Save Changes</button>
-        <button type="button" @click="closePopup">Cancel</button>
+        <button type="submit">{{ $t("userEdit.saveChanges") }}</button>
+        <button type="button" @click="closePopup">{{ $t("userEdit.cancel") }}</button>
       </div>
     </form>
   </div>
 </template>
 
 <script>
-import { UserApiService } from '../../../services/userapi.service.js';
-import CloudinaryService from '../../../services/cloudinary.service.js';
+import { UserApiService } from '../../services/userapi.service.js';
+import CloudinaryService from '../../services/cloudinary.service.js';
 
 export default {
   props: {
     user: Object,
+    role: String,
   },
   data() {
     return {
       name: this.user.name || '',
       lastname: this.user.lastname || '',
-      email: this.user.email || '',
-      phonenumber: this.user.phonenumber || '',
-      profileImage: this.user.profileImage || '',
+      municipalityName: this.user.municipalityName || '',
+      city: this.user.city || '',
+      district: this.user.district || '',
+      email: this.user.institutionalEmail || this.user.email || '',
+      phonenumber: this.user.phone || this.user.phonenumber || '',
+      profileImage: this.user.profileImage || this.user.profile_image || '',
       userService: new UserApiService(),
     };
+  },
+  computed: {
+    isMunicipality() {
+      return this.role === 'ROLE_MUNICIPALITY' || !!this.user.municipalityName;
+    }
   },
   methods: {
     async handleImageUpload(event) {
@@ -70,36 +91,64 @@ export default {
         this.profileImage = secure_url;
       } catch (error) {
         console.error('Image upload failed:', error);
-        alert('Image upload failed.');
+        alert(this.$t("userEdit.imageUploadFailed"));
       }
     },
 
+    normalizeMunicipalityPhone(phone) {
+      const compactPhone = String(phone || "").trim().replace(/[\s\-()]/g, "");
+      if (/^9\d{8}$/.test(compactPhone)) return compactPhone;
+      if (/^\+519\d{8}$/.test(compactPhone)) return compactPhone;
+      if (/^01\d{7}$/.test(compactPhone)) return compactPhone;
+      if (/^\d{7}$/.test(compactPhone)) return `01${compactPhone}`;
+      return null;
+    },
+
     async updateProfile() {
-      const phoneRegex = /^\d{9}$/;
-      if (!phoneRegex.test(this.phonenumber)) {
-        alert("Phone number must be exactly 9 digits.");
+      const normalizedMunicipalityPhone = this.isMunicipality
+        ? this.normalizeMunicipalityPhone(this.phonenumber)
+        : null;
+      const citizenPhone = String(this.phonenumber || "").trim();
+
+      if (this.isMunicipality && !normalizedMunicipalityPhone) {
+        alert(this.$t("userForm.invalid_municipality_phone"));
+        return;
+      }
+
+      if (!this.isMunicipality && !/^9\d{8}$/.test(citizenPhone)) {
+        alert(this.$t("userEdit.invalidMobilePhone"));
         return;
       }
 
       try {
-        const profileUpdate = await this.userService.updateUser(this.user.id, {
-          name: this.name,
-          lastname: this.lastname,
-          email: this.email,
-          phonenumber: this.phonenumber,
-          userId: this.user.userId,
-          profileImage: this.profileImage
-        });
+        const profileUpdate = this.isMunicipality
+          ? await this.userService.updateMunicipality(this.user.id, {
+            municipalityName: this.municipalityName,
+            city: this.city,
+            district: this.district,
+            institutionalEmail: this.email,
+            phone: normalizedMunicipalityPhone,
+            userId: this.user.userId,
+            profileImage: this.profileImage
+          })
+          : await this.userService.updateUser(this.user.id, {
+            name: this.name,
+            lastname: this.lastname,
+            email: this.email,
+            phonenumber: citizenPhone,
+            userId: this.user.userId,
+            profileImage: this.profileImage
+          });
 
         if (![200, 202].includes(profileUpdate.status)) {
-          throw new Error('User profile update failed');
+          throw new Error(this.$t("userEdit.updateFailed"));
         }
 
         this.closePopup();
         window.location.reload();
       } catch (error) {
         console.error('Update failed:', error);
-        alert('Error updating profile.');
+        alert(this.$t("userEdit.updateFailed"));
       }
     },
 

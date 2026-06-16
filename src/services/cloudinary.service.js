@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const cloudName = 'dynfr1idx'; // Make sure this is correct
-const uploadPreset = 'peaceapppresset'; // Must be an unsigned preset
+const uploadPreset = 'peaceapp_evidence'; // Unsigned preset (imágenes, video y audio)
 
 const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 

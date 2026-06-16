@@ -1,6 +1,6 @@
 <script>
-import ToolbarCitizen from "../../components/toolbar/toolbarCitizen.component.vue";
-import UserProfilePage from "../../components/profile/citizen/user-profile.page.vue";
+import ToolbarCitizen from "../../components/toolbar/toolbar-citizen.component.vue";
+import UserProfilePage from "./user-profile.page.vue";
 import { UserApiService } from "../../services/userapi.service.js";
 
 export default {
@@ -12,38 +12,62 @@ export default {
   data() {
     return {
       userEmail: '',
+      userRole: '',
+      iamUserId: '',
       userInfo: {},
       userService: new UserApiService(),
     };
   },
   methods: {
-    getUserEmail() {
+    getSessionData() {
       this.userEmail = localStorage.getItem('userEmail');
-      console.log('localStorage:', {
-        userEmail: this.userEmail,
-        token: localStorage.getItem('authToken')
-      });
+      this.userRole = localStorage.getItem('userRole') || 'ROLE_USER';
+      this.iamUserId = localStorage.getItem('iamUserId') || localStorage.getItem('userId');
     },
 
     async fetchUserInfo() {
-      if (!this.userEmail) {
-        console.warn("No user email found.");
+      if (!this.userEmail && !this.iamUserId) {
+        console.warn("No session profile data found.");
         return;
       }
 
       try {
-        console.log("Buscando usuario con email:", this.userEmail);
-        const response = await this.userService.getUserByEmail(this.userEmail);
-        this.userInfo = response.data || {};
+        let response = null;
+
+        if (this.userRole === 'ROLE_MUNICIPALITY') {
+          response = await this.userService.getMunicipalityByUserId(this.iamUserId);
+        } else if (this.userRole === 'ROLE_ADMIN') {
+          response = await this.userService.getUserByEmail(this.userEmail);
+          if (![200, 201].includes(response?.status)) {
+            this.userInfo = {
+              id: this.iamUserId,
+              name: 'Administrador',
+              email: this.userEmail,
+              role: this.userRole
+            };
+            localStorage.setItem('userInfo', JSON.stringify(this.userInfo));
+            return;
+          }
+        } else {
+          response = await this.userService.getUserByEmail(this.userEmail);
+        }
+
+        if (![200, 201].includes(response?.status)) {
+          throw new Error(response?.data?.message || 'No se pudo cargar el perfil.');
+        }
+
+        this.userInfo = {
+          ...(response.data || {}),
+          role: this.userRole
+        };
         localStorage.setItem('userInfo', JSON.stringify(this.userInfo));
-        console.log("User info:", this.userInfo);
       } catch (error) {
         console.error("Error fetching user info:", error);
       }
     }
   },
   created() {
-    this.getUserEmail();
+    this.getSessionData();
     this.fetchUserInfo();
   }
 };
@@ -55,6 +79,7 @@ export default {
     <UserProfilePage
         v-if="userInfo && Object.keys(userInfo).length"
         :user="userInfo"
+        :role="userRole"
     />
     <p v-else style="color: gray; text-align: center;">Cargando perfil...</p>
   </div>

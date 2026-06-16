@@ -1,7 +1,9 @@
 <script>
 import { authUserService } from "./services/authuser.service.js";
+import MunicipalityEmergencyNotifier from "./components/notifications/municipality-emergency-notifier.component.vue";
 
 export default {
+  components: { MunicipalityEmergencyNotifier },
   data() {
     return {
       users: [],
@@ -119,6 +121,7 @@ export default {
     <div class="container">
       <router-view />
     </div>
+    <MunicipalityEmergencyNotifier />
 
     <!-- Modals -->
     <div v-if="activeModal === 'faq'" class="modal-overlay" @click.self="closeModal">

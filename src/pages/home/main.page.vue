@@ -69,6 +69,7 @@ export default {
           localStorage.setItem('authToken', user.token);
           localStorage.setItem('userEmail', user.username);
           localStorage.setItem('userRole', user.role);
+          localStorage.setItem('iamUserId', user.id);
           localStorage.setItem('userId', user.id);
           return user;
         }
@@ -79,6 +80,11 @@ export default {
         this.error = 'main.errorInvalidCredentials';
         return null;
       }
+    },
+
+    clearStoredSession() {
+      ['authToken', 'userEmail', 'userRole', 'iamUserId', 'userId', 'userInfo', 'municipalityInfo']
+        .forEach((k) => localStorage.removeItem(k));
     },
 
     async onSubmit() {
@@ -97,35 +103,16 @@ export default {
         return;
       }
 
-      try {
-        const userResp = await this.userApiService.getUserByEmail(this.userData.email);
-        if (!userResp || !userResp.data) {
-          this.error = 'main.errorEmailNotFound';
-          this.generateCaptcha();
-          return;
-        }
-      } catch (err) {
-        console.error('Error al buscar usuario por email:', err);
-        this.error = 'main.errorEmailCheck';
+      // La app web es exclusiva para municipalidades: solo municipalidad/admin pueden entrar.
+      const role = localStorage.getItem('userRole');
+      if (role !== 'ROLE_MUNICIPALITY' && role !== 'ROLE_ADMIN') {
+        this.clearStoredSession();
+        this.error = 'main.errorCitizenNoWeb';
         this.generateCaptcha();
         return;
       }
 
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-              localStorage.setItem("userLat", position.coords.latitude);
-              localStorage.setItem("userLng", position.coords.longitude);
-              this.$router.push('/profile');
-            },
-            (err) => {
-              console.warn("No se pudo obtener ubicación:", err);
-              this.$router.push('/profile');
-            }
-        );
-      } else {
-        this.$router.push('/profile');
-      }
+      this.$router.push('/dashboard');
     }
   }
 }
@@ -185,7 +172,12 @@ html {
 }
 
 .input-container {
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: min(80%, 320px);
+  margin: 0 auto;
 }
 
 .card {
@@ -211,6 +203,19 @@ html {
   background-color: red !important;
   color: white !important;
   border: none !important;
+}
+
+.p-dialog-header,
+.p-dialog-header-icons,
+.p-dialog-header-close {
+  display: none !important;
+}
+
+.p-dialog,
+.p-dialog-content {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
 }
 
 ::v-deep(.p-dialog .p-dialog-content) {
@@ -245,17 +250,25 @@ html {
 }
 
 .captcha-container {
-  margin: 20px 0;
+  margin: 0;
   text-align: center;
 }
 
 .captcha-input {
-  width: 70%;
+  width: 100%;
   padding: 10px;
   font-size: 16px;
-  margin-top: 10px;
   border-radius: 8px;
   border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.input-container > .input-style {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  height: 42px;
+  display: block;
 }
 
 /* ================== MODO OSCURO ================== */
@@ -304,10 +317,6 @@ body.dark button {
 
 body.dark button:hover {
   background-color: #2b5dab;
-}
-
-body.dark .error {
-  color: #ff6b6b;
 }
 
 body.dark canvas {

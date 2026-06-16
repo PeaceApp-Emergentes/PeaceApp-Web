@@ -85,6 +85,17 @@ export class ReportApiService {
         }
     }
 
+    async getByDistrict(district) {
+        try {
+            return await axios.get(`${this.baseUrl}/reports/district/${encodeURIComponent(district)}`, {
+                headers: this.getAuthHeaders()
+            });
+        } catch (error) {
+            console.error("Error fetching reports by district", error);
+            return error.response;
+        }
+    }
+
     // -------------------------------------------------------------
     // GET PUBLIC REPORTS (APPROVED)
     // -------------------------------------------------------------
@@ -127,6 +138,17 @@ export class ReportApiService {
         }
     }
 
+    async attend(id) {
+        try {
+            return await axios.put(`${this.baseUrl}/reports/${id}/attend`, {}, {
+                headers: this.getAuthHeaders()
+            });
+        } catch (error) {
+            console.error("Error marking report as attended", error);
+            return error.response;
+        }
+    }
+
     // -------------------------------------------------------------
     // CHANGE STATE → REJECTED (with reason)
     // -------------------------------------------------------------
@@ -152,6 +174,20 @@ export class ReportApiService {
             });
         } catch (error) {
             console.error("Error deleting report", error);
+            return error.response;
+        }
+    }
+
+    // -------------------------------------------------------------
+    // SET EMERGENCY FLAG (municipality)
+    // -------------------------------------------------------------
+    async setEmergency(id, isEmergency) {
+        try {
+            return await axios.put(`${this.baseUrl}/reports/${id}/emergency`, { isEmergency }, {
+                headers: this.getAuthHeaders()
+            });
+        } catch (error) {
+            console.error("Error updating emergency flag", error);
             return error.response;
         }
     }

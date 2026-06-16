@@ -52,6 +52,10 @@
                   <img :src="reportData.image" alt="Preview" class="preview-img" />
                 </div>
               </div>
+              <label class="emergency-toggle">
+                <input type="checkbox" v-model="reportData.emergency" />
+                {{ $t("emergency.reportPriority") }}
+              </label>
             </div>
           </div>
 
@@ -78,7 +82,9 @@
 
 <script>
 import { ReportApiService } from "../../services/reportapi.service.js";
-import CitizenToolbar from "../../components/toolbar/toolbarCitizen.component.vue";
+import { AlertApiService } from "../../services/alertapi.service.js";
+import { UserApiService } from "../../services/userapi.service.js";
+import CitizenToolbar from "../../components/toolbar/toolbar-citizen.component.vue";
 import CloudinaryService from "../../services/cloudinary.service.js";
 import { nextTick } from "vue";
 import mapboxgl from "mapbox-gl";
@@ -96,9 +102,12 @@ export default {
         image: "",
         address: "",
         latitude: null,
-        longitude: null
+        longitude: null,
+        emergency: false
       },
       api: new ReportApiService(),
+      alertApi: new AlertApiService(),
+      userApi: new UserApiService(),
       successMessage: "",
       showSuccessMessage: false,
       map: null,
@@ -113,6 +122,7 @@ export default {
   },
   methods: {
     async createReport() {
+      await this.syncReportProfileId();
       this.reportData.user_id = parseInt(localStorage.getItem("userId")) || 0;
 
       if (!this.reportData.image) {
@@ -138,8 +148,21 @@ export default {
         };
 
         const reportResponse = await this.api.create(payload);
+        if (![200, 201].includes(reportResponse?.status)) {
+          const message = reportResponse?.data?.message || reportResponse?.data || this.$t("reportForm.errorCreateOrLocation");
+          throw new Error(message);
+        }
         const reportId = reportResponse?.data?.id;
         if (!reportId) throw new Error(this.$t('reportForm.errorNoReportId'));
+        if (this.reportData.emergency) {
+          await this.alertApi.createEmergency({
+            location: payload.location,
+            description: this.$t("emergency.reportDescription", { title: payload.title, description: payload.description }),
+            userId: payload.userId,
+            imageUrl: payload.imageUrl,
+            reportId
+          });
+        }
         this.successMessage = this.$t('reportForm.successCreated');
         this.showSuccessMessage = true;
         setTimeout(() => {
@@ -148,7 +171,54 @@ export default {
         }, 3000);
       } catch (error) {
         console.error(this.$t('reportForm.errorCreateOrLocation'), error);
+        alert(error.message || this.$t('reportForm.errorCreateOrLocation'));
       }
+    },
+
+    async syncReportProfileId() {
+      const role = localStorage.getItem("userRole");
+      const email = localStorage.getItem("userEmail");
+      const storedUserInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+      const iamUserId = localStorage.getItem("iamUserId") || storedUserInfo.userId || localStorage.getItem("userId");
+      if (!email || !iamUserId) return;
+
+      const response = await this.userApi.getUserByEmail(email);
+      if (response?.data?.id) {
+        localStorage.setItem("userId", response.data.id);
+        localStorage.setItem("iamUserId", response.data.userId || localStorage.getItem("iamUserId"));
+        localStorage.setItem("userInfo", JSON.stringify(response.data));
+        return;
+      }
+
+      if (role !== "ROLE_MUNICIPALITY" && role !== "ROLE_ADMIN") return;
+
+      let municipalityProfile = null;
+      if (role === "ROLE_MUNICIPALITY") {
+        const municipalityResponse = await this.userApi.getMunicipalityByUserId(iamUserId);
+        if ([200, 201].includes(municipalityResponse?.status)) {
+          municipalityProfile = municipalityResponse.data;
+        } else if (storedUserInfo.municipalityName) {
+          municipalityProfile = storedUserInfo;
+        }
+      }
+
+      const mirrorProfile = {
+        name: municipalityProfile?.municipalityName || this.$t("profile.admin"),
+        lastname: municipalityProfile?.district || "PeaceApp",
+        email: municipalityProfile?.institutionalEmail || email,
+        phonenumber: municipalityProfile?.phone || "999999999",
+        userId: String(iamUserId),
+        profileImage: municipalityProfile?.profileImage || "https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg"
+      };
+
+      const createdProfile = await this.userApi.createUser(mirrorProfile);
+      if ([200, 201].includes(createdProfile?.status) && createdProfile?.data?.id) {
+        localStorage.setItem("userId", createdProfile.data.id);
+        localStorage.setItem("reportUserInfo", JSON.stringify(createdProfile.data));
+        return;
+      }
+
+      throw new Error(createdProfile?.data?.message || this.$t("reportForm.errorPrepareProfile"));
     },
 
     async handleFileUpload(event) {
@@ -349,6 +419,19 @@ export default {
   opacity: 0;
   position: absolute;
   pointer-events: none;
+}
+
+.emergency-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  color: #8a0018;
+  font-weight: 800;
+  background: #fff5f5;
+  border: 2px solid #e53935;
+  border-radius: 8px;
+  padding: 10px;
 }
 
 .column-half {

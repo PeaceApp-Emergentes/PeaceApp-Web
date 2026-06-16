@@ -36,9 +36,24 @@
 
 
       <!-- SI NO FUE RECHAZADO → MOSTRAR IMAGEN -->
-      <div v-else-if="report.imageUrl" class="image-container">
-        <strong>{{ $t('reports.evidence_label') }}</strong><br>
-        <img :src="report.imageUrl" alt="Evidence">
+      <div v-if="hasEvidence" class="evidence-section">
+        <strong>{{ $t('reports.evidence_label') }}</strong>
+
+        <div v-if="report.imageUrl" class="image-container">
+          <img :src="report.imageUrl" alt="Evidence">
+        </div>
+
+        <div v-if="report.videoUrl" class="media-block">
+          <span>Video</span>
+          <video :src="report.videoUrl" controls preload="metadata"></video>
+          <a :href="report.videoUrl" target="_blank" rel="noopener">Abrir video</a>
+        </div>
+
+        <div v-if="report.audioUrl" class="media-block">
+          <span>Audio</span>
+          <audio :src="report.audioUrl" controls preload="metadata"></audio>
+          <a :href="report.audioUrl" target="_blank" rel="noopener">Abrir audio</a>
+        </div>
       </div>
 
 
@@ -63,6 +78,12 @@
         {{ $t('reports.reject') }}
       </button>
 
+      <button v-if="canAttend"
+              class="attend-btn"
+              @click="attendReport">
+        {{ $t('dashboard.markAttended') }}
+      </button>
+
     </div>
 
 
@@ -72,7 +93,7 @@
 <script>
 import { ReportApiService } from "../../services/reportapi.service.js";
 import { UserApiService } from "../../services/userapi.service.js";
-import CitizenToolbar from "../toolbar/toolbarCitizen.component.vue";
+import CitizenToolbar from "../../components/toolbar/toolbar-citizen.component.vue";
 
 export default {
   name: "ReportDetail",
@@ -100,12 +121,14 @@ export default {
 
       return (
           this.report?.userId === loggedUserId ||
-          role === "ROLE_ADMIN"
+          role === "ROLE_ADMIN" ||
+          role === "ROLE_MUNICIPALITY"
       );
     },
 
     isAdmin() {
-      return localStorage.getItem("userRole") === "ROLE_ADMIN";
+      const role = localStorage.getItem("userRole");
+      return role === "ROLE_ADMIN" || role === "ROLE_MUNICIPALITY";
     },
 
     // 🔵 Solo se puede aprobar si NO está rechazado
@@ -120,10 +143,16 @@ export default {
     // 🔵 Solo se puede rechazar si NO está aprobado
     canReject() {
       if (!this.report) return false;
-      return (
-          this.report.state === "PENDING" ||
-          this.report.state === "IN_REVIEW"
-      );
+      return this.report.state === "IN_REVIEW";
+    },
+
+    canAttend() {
+      if (!this.report) return false;
+      return this.report.state === "APPROVED";
+    },
+
+    hasEvidence() {
+      return Boolean(this.report?.imageUrl || this.report?.videoUrl || this.report?.audioUrl);
     }
   },
 
@@ -139,7 +168,7 @@ export default {
 
         // 🔥 SI ES ADMIN Y EL REPORTE ESTÁ EN PENDING → MARCAR COMO "IN REVIEW"
         const role = localStorage.getItem("userRole");
-        if (role === "ROLE_ADMIN" && this.report.state === "PENDING") {
+        if ((role === "ROLE_ADMIN" || role === "ROLE_MUNICIPALITY") && this.report.state === "PENDING") {
           console.log("⚡ Marcando reporte como IN REVIEW...");
           await this.api.markInReview(id);
         }
@@ -175,6 +204,7 @@ export default {
       }
     },
     async approveReport() {
+      if (!this.canApprove) return;
       try {
         const id = this.$route.params.id;
         const res = await this.api.approve(id);
@@ -190,6 +220,7 @@ export default {
     },
 
     async rejectReport() {
+      if (!this.canReject) return;
       const reason = prompt(this.$t("reports.reject_reason_prompt"));
 
       if (!reason) return;
@@ -207,10 +238,26 @@ export default {
         alert(this.$t("reports.rejected_error"));
       }
     },
+    async attendReport() {
+      if (!this.canAttend) return;
+      try {
+        const id = this.$route.params.id;
+        const res = await this.api.attend(id);
+
+        if (res.status === 200) {
+          this.report.state = "ATTENDED";
+          this.report.isEmergency = false;
+        }
+      } catch (err) {
+        console.error("Error attending report:", err);
+        alert(this.$t("dashboard.updateError"));
+      }
+    },
     translateState(state) {
       const map = {
         PENDING: this.$t('reportForm.placeholders.pending'),
         APPROVED: this.$t('reportForm.placeholders.approved'),
+        ATTENDED: this.$t('reportForm.placeholders.attended'),
         REJECTED: this.$t('reportForm.placeholders.rejected'),
         IN_REVIEW: this.$t('reportForm.placeholders.in_review'),
       };
@@ -318,10 +365,61 @@ h1 {
   background-color: #ca6f1e;
 }
 
+.attend-btn {
+  flex: 1;
+  background-color: #27ae60;
+  color: white;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.attend-btn:hover {
+  background-color: #1e8449;
+}
+
 .image-container img {
   width: 100%;
   border-radius: 10px;
   margin-top: 10px;
+}
+
+.evidence-section {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.media-block {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #d7e1e7;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.media-block span {
+  font-weight: 700;
+  color: #1c597c;
+}
+
+.media-block video,
+.media-block audio {
+  width: 100%;
+}
+
+.media-block video {
+  max-height: 360px;
+  border-radius: 8px;
+  background: #111;
+}
+
+.media-block a {
+  color: #1c597c;
+  font-weight: 700;
 }
 
 .loading, .no-data {

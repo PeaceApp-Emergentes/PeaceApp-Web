@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import ToolbarCitizen from "../toolbar/toolbarCitizen.component.vue";
+import ToolbarCitizen from "../../components/toolbar/toolbar-citizen.component.vue";
 import { AlertApiService } from "../../services/alertapi.service.js";
 
 export default {

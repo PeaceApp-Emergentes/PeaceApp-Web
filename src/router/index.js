@@ -2,14 +2,15 @@ import {createRouter, createWebHistory} from 'vue-router'
 
 import Profile from "../pages/profile/profile.page.vue";
 import ReportFormView from "../pages/reports/report-form.page.vue";
-import Principal from '../pages/main/main.page.vue'
-import UserReportListComponent from '../components/reports/user-report-list.component.vue'
-import reportList from '../components/reports/report-list.component.vue'
-import passwordRecover from '../pages/recover/password-recover.page.vue'
-import finalRecover from '../pages/recover/final-recover.page.vue'
-import MapCitizen from '../components/maps/citizenmap/mapCitizen.vue'
-import ViewNotificationsComponent from "../components/notifications/view-notifications.component.vue";
-import ReportDetailComponent from "@/components/reports/report-detail-component.vue";
+import Principal from '../pages/home/main.page.vue'
+import UserReportListComponent from '../pages/reports/user-report-list.component.vue'
+import reportList from '../pages/reports/report-list.component.vue'
+import passwordRecover from '../pages/auth/password-recover.page.vue'
+import finalRecover from '../pages/auth/final-recover.page.vue'
+import MapCitizen from '../pages/map/map-citizen.page.vue'
+import ViewNotificationsComponent from "../pages/notifications/view-notifications.component.vue";
+import ReportDetailComponent from "@/pages/reports/report-detail.component.vue";
+import MunicipalityDashboard from "../pages/municipality/municipality-dashboard.page.vue";
 const router= createRouter({
     history: createWebHistory(),
     routes: [
@@ -22,9 +23,38 @@ const router= createRouter({
         { path: '/report/:id',name:'report-detail', component: ReportDetailComponent},
         {path: '/password-recover', component: passwordRecover},
         {path: '/recover', component: finalRecover},
-        {path: '/user/map', component: MapCitizen},
-        {path: '/user/notifications', component: ViewNotificationsComponent},
+        {path: '/map', component: MapCitizen},
+        {path: '/user/map', redirect: '/map'},
+        {
+            path: '/user/notifications',
+            component: ViewNotificationsComponent,
+            beforeEnter: () => {
+                const role = localStorage.getItem('userRole');
+                if (role === 'ROLE_MUNICIPALITY' || role === 'ROLE_ADMIN') return '/dashboard';
+                return true;
+            }
+        },
+        {path: '/dashboard', component: MunicipalityDashboard},
+        {path: '/municipality/dashboard', redirect: '/dashboard'},
     ]
+});
+
+router.beforeEach((to, from, next) => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+        if (to.path === '/' || to.path === '/login' || to.path === '/password-recover' || to.path === '/recover') {
+            next('/dashboard');
+        } else {
+            next();
+        }
+    } else {
+        const publicPages = ['/', '/password-recover', '/recover', '/map'];
+        if (!publicPages.includes(to.path) && !to.path.startsWith('/report/')) {
+            next('/');
+        } else {
+            next();
+        }
+    }
 });
 
 export default router;

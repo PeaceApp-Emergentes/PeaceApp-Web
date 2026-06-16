@@ -1,5 +1,5 @@
 <script>
-import CitizenToolbar from "../../toolbar/toolbarCitizen.component.vue";
+import CitizenToolbar from "../../components/toolbar/toolbar-citizen.component.vue";
 import EditUser from "./user-edit-profile.page.vue";
 
 export default {
@@ -8,7 +8,8 @@ export default {
     EditUser
   },
   props: {
-    user: Object
+    user: Object,
+    role: String
   },
   data() {
     return {
@@ -16,8 +17,24 @@ export default {
     };
   },
   computed: {
+    isMunicipality() {
+      return this.role === 'ROLE_MUNICIPALITY' || !!this.user.municipalityName;
+    },
+    isAdmin() {
+      return this.role === 'ROLE_ADMIN';
+    },
     fullName() {
+      if (this.isMunicipality) return this.user.municipalityName || 'Municipalidad';
       return `${this.user.name || ''} ${this.user.lastname || ''}`.trim();
+    },
+    email() {
+      return this.user.institutionalEmail || this.user.email || '';
+    },
+    phone() {
+      return this.user.phone || this.user.phonenumber || '';
+    },
+    profileImage() {
+      return this.user.profileImage || this.user.profile_image || 'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg';
     }
   },
   methods: {
@@ -25,10 +42,9 @@ export default {
       this.showPopup = true;
     },
     logout() {
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('authToken');
-      this.$router.push('/login');
+      ['authToken', 'userEmail', 'userRole', 'iamUserId', 'userId', 'userInfo', 'municipalityInfo']
+        .forEach((k) => localStorage.removeItem(k));
+      this.$router.push('/');
     }
   }
 };
@@ -42,24 +58,27 @@ export default {
     <div class="padre">
       <div class="container">
         <div class="left">
-          <img :src="user.profileImage" alt="Usuario" class="img" />
+          <img :src="profileImage" alt="Usuario" class="img" />
         </div>
 
         <div class="right">
           <h2>{{ fullName }}</h2>
-          <p><strong>Email:</strong> {{ user.email }}</p>
-          <p><strong>{{ $t('profile.user.phone') }}:</strong> {{ user.phonenumber }}</p>
+          <p><strong>Email:</strong> {{ email }}</p>
+          <p><strong>{{ $t('profile.user.phone') }}:</strong> {{ phone }}</p>
+          <p v-if="isMunicipality"><strong>Ciudad:</strong> {{ user.city }}</p>
+          <p v-if="isMunicipality"><strong>Distrito:</strong> {{ user.district }}</p>
+          <p v-if="isAdmin"><strong>Rol:</strong> Administrador</p>
         </div>
 
         <div class="buttons">
-          <button @click="openPopup">{{ $t('profile.edit') }}</button>
+          <button v-if="!isAdmin" @click="openPopup">{{ $t('profile.edit') }}</button>
           <button @click="logout">{{ $t('profile.logout') }}</button>
         </div>
       </div>
     </div>
 
     <div class="popup-container" v-if="showPopup">
-      <EditUser :user="user" @close="showPopup = false" />
+      <EditUser :user="user" :role="role" @close="showPopup = false" />
     </div>
   </div>
 </template>

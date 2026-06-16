@@ -1,53 +1,178 @@
-<script>
+﻿<script>
 import { authUserService } from "../../services/authuser.service.js";
 import { UserApiService } from "../../services/userapi.service.js";
+
+// Registro exclusivo para MUNICIPALIDADES (la app web es solo para municipalidades).
+// Solo se piden los datos necesarios para el negocio municipal.
+const MUNICIPALITY_ROLE = "ROLE_MUNICIPALITY";
+const DEFAULT_PROFILE_IMAGE =
+  "https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg";
+
+// Distritos de Lima Metropolitana y Callao, ordenados alfabéticamente por provincia.
+const DISTRICTS_BY_PROVINCE = {
+  "Lima": [
+    "Ancón",
+    "Ate",
+    "Barranco",
+    "Breña",
+    "Carabayllo",
+    "Chaclacayo",
+    "Chorrillos",
+    "Cieneguilla",
+    "Comas",
+    "El Agustino",
+    "Independencia",
+    "Jesús María",
+    "La Molina",
+    "La Victoria",
+    "Lima (Cercado)",
+    "Lince",
+    "Los Olivos",
+    "Lurigancho-Chosica",
+    "Lurín",
+    "Magdalena del Mar",
+    "Miraflores",
+    "Pachacámac",
+    "Pucusana",
+    "Pueblo Libre",
+    "Puente Piedra",
+    "Punta Hermosa",
+    "Punta Negra",
+    "Rímac",
+    "San Bartolo",
+    "San Borja",
+    "San Isidro",
+    "San Juan de Lurigancho",
+    "San Juan de Miraflores",
+    "San Luis",
+    "San Martín de Porres",
+    "San Miguel",
+    "Santa Anita",
+    "Santa María del Mar",
+    "Santa Rosa",
+    "Santiago de Surco",
+    "Surquillo",
+    "Villa El Salvador",
+    "Villa María del Triunfo"
+  ],
+  "Callao": [
+    "Bellavista",
+    "Callao (Cercado)",
+    "Carmen de la Legua Reynoso",
+    "La Perla",
+    "La Punta",
+    "Mi Perú",
+    "Ventanilla"
+  ]
+};
 
 export default {
   data() {
     return {
       authService: new authUserService(),
       userApiService: new UserApiService(),
-      confirmPassword: '',
+      confirmPassword: "",
       isSubmitting: false,
+      districtSearch: "",
+      isDistrictDropdownOpen: false,
       formData: {
-        name: '',
-        lastname: '',
-        email: '',
-        password: '',
-        phonenumber: '',
-        profileImage: 'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg'
+        municipalityName: "",
+        city: "",
+        district: "",
+        institutionalEmail: "",
+        phonenumber: "",
+        password: "",
+        profileImage: DEFAULT_PROFILE_IMAGE
       },
       error: null,
       success: null
     };
   },
+  computed: {
+    /** Provincias disponibles (Lima y Callao). */
+    availableProvinces() {
+      return Object.keys(DISTRICTS_BY_PROVINCE);
+    },
+    /** Distritos filtrados según la provincia seleccionada y el texto de búsqueda. */
+    filteredDistricts() {
+      if (!this.formData.city) return [];
+      const all = DISTRICTS_BY_PROVINCE[this.formData.city] || [];
+      if (!this.districtSearch) return all;
+      const search = this.districtSearch.toLowerCase();
+      return all.filter(d => d.toLowerCase().includes(search));
+    }
+  },
   methods: {
+    onCityChange() {
+      // Al cambiar la provincia, reseteamos el distrito seleccionado.
+      this.formData.district = "";
+      this.districtSearch = "";
+    },
+
+    openDistrictDropdown() {
+      if (!this.formData.city) {
+        this.error = this.$t("userForm.select_city_first");
+        return;
+      }
+      this.isDistrictDropdownOpen = true;
+      this.$nextTick(() => {
+        const input = this.$refs.districtSearchInput;
+        if (input) input.focus();
+      });
+    },
+
+    selectDistrict(district) {
+      this.formData.district = district;
+      this.districtSearch = "";
+      this.isDistrictDropdownOpen = false;
+    },
+
+    closeDistrictDropdown() {
+      // Timeout para permitir que el click en una opción se registre antes de cerrar.
+      setTimeout(() => {
+        this.isDistrictDropdownOpen = false;
+      }, 200);
+    },
+
+    normalizeMunicipalityPhone(phone) {
+      const compactPhone = String(phone || "").trim().replace(/[\s\-()]/g, "");
+      if (/^9\d{8}$/.test(compactPhone)) return compactPhone;
+      if (/^\+519\d{8}$/.test(compactPhone)) return compactPhone;
+      if (/^01\d{7}$/.test(compactPhone)) return compactPhone;
+      if (/^\d{7}$/.test(compactPhone)) return `01${compactPhone}`;
+      return null;
+    },
+
     validateInputs() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const phoneRegex = /^\d{9}$/;
       const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 
-      if (!emailRegex.test(this.formData.email)) {
-        this.error = "Invalid email format.";
+      if (!this.formData.municipalityName || !this.formData.city || !this.formData.district) {
+        this.error = this.$t("userForm.complete_municipality_data");
         return false;
       }
-      if (!phoneRegex.test(this.formData.phonenumber)) {
-        this.error = "Phone number must be exactly 9 digits.";
+      if (!emailRegex.test(this.formData.institutionalEmail)) {
+        this.error = this.$t("userForm.invalid_institutional_email");
         return false;
       }
+      const normalizedPhone = this.normalizeMunicipalityPhone(this.formData.phonenumber);
+      if (!normalizedPhone) {
+        this.error = this.$t("userForm.invalid_municipality_phone");
+        return false;
+      }
+      this.formData.phonenumber = normalizedPhone;
       if (!passwordRegex.test(this.formData.password)) {
-        this.error =
-            "Password must be at least 8 characters, with uppercase, lowercase, number, and special character.";
+        this.error = this.$t("userForm.invalid_password");
         return false;
       }
       if (this.formData.password !== this.confirmPassword) {
-        this.error = "Passwords do not match.";
+        this.error = this.$t("userForm.password_mismatch");
         return false;
       }
       return true;
     },
 
-    async createUser() {
+    async createMunicipalityAccount() {
       if (this.isSubmitting) return;
       this.isSubmitting = true;
       this.error = null;
@@ -57,107 +182,136 @@ export default {
         this.isSubmitting = false;
         return;
       }
+
+      // El correo institucional es el usuario de la cuenta municipal.
+      const username = this.formData.institutionalEmail.trim();
+
       try {
-        const signUpData = {
-          username: this.formData.email,
+        // 1) Crear credenciales en IAM con rol de municipalidad
+        const signUpResponse = await this.authService.signUp({
+          username,
           password: this.formData.password,
-          role: "ROLE_USER"
-        };
-
-        const signUpResponse = await this.authService.signUp(signUpData);
-        if (![200, 201].includes(signUpResponse.status)) {
-          this.error = "Failed to create account.";
+          roles: [MUNICIPALITY_ROLE]
+        });
+        if (![200, 201].includes(signUpResponse?.status)) {
+          this.error = signUpResponse?.data?.message || this.$t("userForm.create_account_error");
           return;
         }
 
-        const loginResponse = await this.authService.signInUser(
-            this.formData.email,
-            this.formData.password
-        );
-
-        if (loginResponse.status !== 200) {
-          this.error = "Login failed after registration.";
+        // 2) Iniciar sesión para obtener id de usuario y token
+        const loginResponse = await this.authService.signInUser(username, this.formData.password);
+        if (loginResponse?.status !== 200) {
+          this.error = this.$t("userForm.login_after_signup_error");
           return;
         }
-
         const user = loginResponse.data;
         localStorage.setItem("userEmail", user.username);
-        localStorage.setItem("userRole", "ROLE_USER");
+        localStorage.setItem("userRole", MUNICIPALITY_ROLE);
         localStorage.setItem("authToken", user.token);
+        localStorage.setItem("iamUserId", user.id);
         localStorage.setItem("userId", user.id);
 
-        const userData = {
-          name: this.formData.name,
-          lastname: this.formData.lastname,
-          email: this.formData.email,
-          password: this.formData.password,
-          phonenumber: this.formData.phonenumber,
-          userId: user.id,
-          profile_image: this.formData.profileImage
-        };
+        // 3) Crear el perfil de la municipalidad (datos de negocio)
+        const profileResponse = await this.userApiService.createMunicipality({
+          municipalityName: this.formData.municipalityName.trim(),
+          city: this.formData.city.trim(),
+          district: this.formData.district.trim(),
+          institutionalEmail: username,
+          phone: this.normalizeMunicipalityPhone(this.formData.phonenumber),
+          userId: String(user.id),
+          profileImage: this.formData.profileImage
+        });
 
-        const profileResponse = await this.userApiService.createUser(userData);
-        if ([200, 201].includes(profileResponse.status)) {
-          this.success = "Account created successfully!";
-          setTimeout(() => this.$router.push({ path: "/profile" }), 3000);
+        if ([200, 201].includes(profileResponse?.status)) {
+          localStorage.setItem("municipalityInfo", JSON.stringify(profileResponse.data));
+          this.success = this.$t("userForm.account_created");
+          setTimeout(() => this.$router.push({ path: "/dashboard" }), 800);
         } else {
-          this.error = "Failed to save user profile.";
+          this.error = profileResponse?.data?.message || this.$t("userForm.save_profile_error");
         }
       } catch (error) {
         console.error("Registration error:", error);
-        this.error = error?.response?.data?.message || "Unexpected error occurred.";
+        this.error = error?.response?.data?.message || this.$t("userForm.unexpected_error");
+      } finally {
+        this.isSubmitting = false;
       }
     },
 
-    async submit() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              localStorage.setItem("userLat", pos.coords.latitude);
-              localStorage.setItem("userLng", pos.coords.longitude);
-              this.createUser();
-            },
-            () => {
-              this.createUser();
-            }
-        );
-      } else {
-        this.createUser();
-      }
+    submit() {
+      this.createMunicipalityAccount();
     },
 
     restrictToDigits(event) {
-      const key = event.key;
-      if (!/^\d$/.test(key)) {
-        event.preventDefault();
-      }
+      if (!/^\d$/.test(event.key)) event.preventDefault();
     }
   }
 };
 </script>
 
 <template>
-  <form class="form" @submit.prevent="submit()">
-    <p class="message">{{ $t('userForm.message') }}</p>
+  <form class="form" @submit.prevent="submit">
+    <p class="message">
+      {{ $t("userForm.municipality_message") }}
+    </p>
 
+    <!-- Fila 1: Nombre de municipalidad -->
     <div class="flex">
-      <input :placeholder="$t('userForm.firstname')" class="input-style" type="text" required v-model="formData.name" />
-      <input :placeholder="$t('userForm.lastname')" class="input-style" type="text" required v-model="formData.lastname" />
+      <input :placeholder="$t('userForm.municipality_name')" class="input-style" type="text" required v-model="formData.municipalityName" />
     </div>
 
+    <!-- Fila 2: Provincia / Ciudad + Distrito (combo boxes) -->
     <div class="flex">
-      <input :placeholder="$t('userForm.email')" class="input-style" type="email" required v-model="formData.email" />
-      <input
-          :placeholder="$t('userForm.phone')"
-          class="input-style"
-          type="text"
-          required
-          maxlength="9"
-          @keypress="restrictToDigits"
-          v-model="formData.phonenumber"
-      />
+      <div class="select-wrapper">
+        <label class="select-label">{{ $t("userForm.province_city") }}</label>
+        <select class="input-style select-style" v-model="formData.city" @change="onCityChange" required>
+          <option value="" disabled>{{ $t("userForm.select_province") }}</option>
+          <option v-for="province in availableProvinces" :key="province" :value="province">
+            {{ province }}
+          </option>
+        </select>
+      </div>
+
+      <div class="select-wrapper">
+        <label class="select-label">{{ $t("userForm.district") }}</label>
+        <div class="district-combobox" @click="openDistrictDropdown">
+          <input
+            type="text"
+            class="input-style combobox-input"
+            :placeholder="formData.district || $t('userForm.select_district')"
+            v-model="districtSearch"
+            ref="districtSearchInput"
+            @focus="openDistrictDropdown"
+            @blur="closeDistrictDropdown"
+            autocomplete="off"
+          />
+          <span class="combobox-arrow">&#9662;</span>
+          <!-- Valor real para validación -->
+          <input type="hidden" :value="formData.district" required />
+        </div>
+        <ul class="district-dropdown" v-show="isDistrictDropdownOpen && filteredDistricts.length > 0">
+          <li
+            v-for="district in filteredDistricts"
+            :key="district"
+            class="district-option"
+            :class="{ selected: formData.district === district }"
+            @mousedown.prevent="selectDistrict(district)"
+          >
+            {{ district }}
+          </li>
+        </ul>
+        <p v-if="isDistrictDropdownOpen && filteredDistricts.length === 0 && districtSearch" class="no-results">
+          {{ $t("userForm.no_districts") }}
+        </p>
+      </div>
     </div>
 
+    <!-- Fila 3: Email institucional + Teléfono -->
+    <div class="flex">
+      <input :placeholder="$t('userForm.institutional_email')" class="input-style" type="email" required v-model="formData.institutionalEmail" />
+      <input :placeholder="$t('userForm.municipality_phone')" class="input-style" type="tel" required maxlength="12" v-model="formData.phonenumber" />
+    </div>
+
+    <!-- Fila 4: Contraseñas -->
     <div class="flex">
       <input :placeholder="$t('userForm.password')" class="input-style" type="password" required v-model="formData.password" />
       <input :placeholder="$t('userForm.confirm_password')" class="input-style" type="password" required v-model="confirmPassword" />
@@ -169,224 +323,257 @@ export default {
       {{ $t('userForm.term') }}
     </label>
 
-    <button type="submit">{{ $t('userForm.submit') }}</button>
+    <button class="submit-btn" type="submit" :disabled="isSubmitting">
+      {{ isSubmitting ? $t("userForm.creating") : $t('userForm.submit') }}
+    </button>
 
     <p v-if="error" class="error">{{ error }}</p>
     <p v-if="success" class="success">{{ success }}</p>
   </form>
 </template>
+
 <style scoped>
-button {
-  font-size: 16px;
-  padding: 10px 20px;
-  border: none;
-  background-color: #3498db;
-  color: white;
-  border-radius: 5px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
-  width: 100%;
-  max-width: 200px;
-  margin-top: 10px;
-}
-
-button:hover {
-  background-color: #2980b9;
-}
-
-body.dark button {
-  background-color: #22487A;
-  color: white;
-}
-
-body.dark button:hover {
-  background-color: #2b5dab;
-}
-
 .form {
   display: flex;
   flex-direction: column;
-  max-width: 500px;
+  max-width: 560px;
+  width: min(560px, calc(100vw - 40px));
   margin: 0 auto;
-  padding: 20px;
-  border-radius: 20px;
-  position: relative;
+  padding: 22px;
+  border-radius: 16px;
   align-items: center;
-  justify-content: center;
   background-color: #55B0DB;
   box-sizing: border-box;
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-body.dark .form {
-  background-color: #1e1e1e;
-  color: #f5f5f5;
+.form button {
+  height: auto;
+  margin: 0;
+}
+
+.role-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: min(360px, 100%);
+  gap: 8px;
+  margin: 0 auto 18px;
+}
+
+.role-switch button,
+.submit-btn {
+  font-size: 15px;
+  padding: 10px 14px;
+  border: 0;
+  background-color: #c4e2f3;
+  color: #161616;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  line-height: 1.2;
+  height: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.role-switch button.active,
+.submit-btn {
+  background-color: #1c597c;
+  color: white;
+}
+
+.role-switch button:hover {
+  background-color: #d9edf8;
+}
+
+.role-switch button.active:hover,
+.submit-btn:hover {
+  background-color: #174a67;
+}
+
+.submit-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.submit-btn {
+  width: min(220px, 100%);
+  margin-top: 12px;
 }
 
 .message {
-  color: rgba(88, 87, 87, 0.822);
+  color: #2f2f2f;
   font-size: 14px;
   text-align: center;
   margin-bottom: 10px;
 }
 
-body.dark .message {
-  color: #ccc;
-}
-
 .flex {
   display: flex;
-  gap: 10px;
+  gap: 30px;
   width: 100%;
-  margin-bottom: 10px;
+  margin-bottom: 30px;
   flex-wrap: wrap;
 }
 
 .input-style {
   flex: 1;
-  padding: 10px;
-  border-radius: 5px;
+  width: 100%;
+  min-width: 180px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 6px;
   border: 1px solid #ccc;
   font-size: 14px;
   box-sizing: border-box;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  height: 38px;
 }
 
-body.dark .input-style {
-  background-color: #2a2a2a;
-  color: #f5f5f5;
-  border: 1px solid #444;
+/* Select / Combobox Styles */
+.select-wrapper {
+  flex: 1;
+  min-width: 180px;
+  position: relative;
 }
 
-.input-style::placeholder {
-  color: #999;
+.select-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a3d52;
+  margin-bottom: 4px;
+  letter-spacing: 0.3px;
 }
 
-body.dark .input-style::placeholder {
-  color: #aaa;
+.select-style {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23555' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+  cursor: pointer;
+  background-color: #fff;
 }
+
+.select-style:focus {
+  outline: none;
+  border-color: #1c597c;
+  box-shadow: 0 0 0 2px rgba(28, 89, 124, 0.25);
+}
+
+.district-combobox {
+  position: relative;
+  cursor: pointer;
+}
+
+.combobox-input {
+  cursor: pointer;
+  padding-right: 30px !important;
+  background-color: #fff;
+}
+
+.combobox-input:focus {
+  outline: none;
+  border-color: #1c597c;
+  box-shadow: 0 0 0 2px rgba(28, 89, 124, 0.25);
+}
+
+.combobox-input::placeholder {
+  color: #333;
+  opacity: 1;
+}
+
+.combobox-arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #555;
+  pointer-events: none;
+}
+
+.district-dropdown {
+  position: absolute;
+  z-index: 100;
+  width: 100%;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #b0cfdf;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.district-option {
+  padding: 9px 14px;
+  font-size: 13.5px;
+  color: #222;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.district-option:hover {
+  background: #dceef7;
+}
+
+.district-option.selected {
+  background: #1c597c;
+  color: #fff;
+  font-weight: 600;
+}
+
+.no-results {
+  font-size: 12px;
+  color: #8a0018;
+  margin-top: 4px;
+}
+
+/* End Select / Combobox */
 
 .material-checkbox {
   display: flex;
   align-items: center;
   font-size: 14px;
-  color: #444;
-  margin-top: 10px;
-}
-
-body.dark .material-checkbox {
-  color: #ccc;
+  color: #333;
+  margin-top: 8px;
 }
 
 .material-checkbox input[type="checkbox"] {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.checkmark {
-  position: relative;
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  margin-right: 12px;
-  border: 2px solid #454B00;
-  border-radius: 4px;
-  transition: all 0.3s;
-}
-
-.material-checkbox input[type="checkbox"]:checked ~ .checkmark {
-  background-color: #2F3300;
-  border-color: #454B00;
-}
-
-.material-checkbox input[type="checkbox"]:checked ~ .checkmark:after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 6px;
-  width: 4px;
-  height: 10px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
-.material-checkbox input[type="checkbox"]:focus ~ .checkmark {
-  box-shadow: 0 0 0 2px #1C597C;
-}
-
-.material-checkbox:hover input[type="checkbox"] ~ .checkmark {
-  border-color: #1F79AA;
-}
-
-.material-checkbox input[type="checkbox"]:disabled ~ .checkmark {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.material-checkbox input[type="checkbox"]:disabled ~ .checkmark:hover {
-  border-color: #4d4d4d;
+  margin-right: 8px;
 }
 
 .error {
-  color: #b00020;
+  color: #8a0018;
   margin-top: 10px;
   font-size: 13px;
   text-align: center;
 }
 
 .success {
-  color: #2e7d32;
+  color: #0f6b2f;
   margin-top: 10px;
   font-size: 13px;
   text-align: center;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
-  .form {
-    padding: 15px;
-    width: 95%;
-  }
-
   .flex {
     flex-direction: column;
-    gap: 8px;
-  }
-
-  .input-style {
-    width: 100%;
-  }
-
-  button {
-    width: 100%;
-    max-width: none;
-  }
-
-  .material-checkbox {
-    font-size: 13px;
-  }
-}
-
-@media (max-width: 480px) {
-  .form {
-    padding: 10px;
-  }
-
-  .message {
-    font-size: 13px;
-  }
-
-  .input-style {
-    font-size: 13px;
-  }
-
-  button {
-    font-size: 14px;
-    padding: 8px;
   }
 }
 </style>
+
+

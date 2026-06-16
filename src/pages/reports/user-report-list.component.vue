@@ -53,7 +53,7 @@
 <script>
 import { ReportApiService } from "../../services/reportapi.service.js";
 import { UserApiService } from "../../services/userapi.service.js";
-import CitizenToolbar from "../toolbar/toolbarCitizen.component.vue";
+import CitizenToolbar from "../../components/toolbar/toolbar-citizen.component.vue";
 
 export default {
   name: "ReportsList",
@@ -94,6 +94,7 @@ export default {
       const s = {
         PENDING: this.$t('reportForm.placeholders.pending'),
         APPROVED: this.$t('reportForm.placeholders.approved'),
+        ATTENDED: this.$t('reportForm.placeholders.attended'),
         REJECTED: this.$t('reportForm.placeholders.rejected'),
         IN_REVIEW: this.$t('reportForm.placeholders.in_review')
       };
