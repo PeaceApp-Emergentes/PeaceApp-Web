@@ -1,4 +1,4 @@
-Ôªø<template>
+<template>
   <header>
     <CitizenToolbar />
   </header>
@@ -27,15 +27,15 @@
 
     <div v-if="selectedReport" class="report-popup-overlay" @click.self="selectedReport = null">
       <aside class="report-floating-popup" :class="{ emergency: isEmergencyReport(selectedReport), attended: selectedReport.state === 'ATTENDED' }">
-        <button class="close-report-panel" type="button" :aria-label="$t('map.closeDetail')" @click="selectedReport = null">√ó</button>
+        <button class="close-report-panel" type="button" :aria-label="$t('map.closeDetail')" @click="selectedReport = null">◊</button>
         <div class="report-detail-grid">
           <div class="report-detail-main">
             <h3>
               {{ selectedReport.title || $t("reports.details") }}
               <span class="urgency-badge" :class="'urgency-' + urgencyLevel(selectedReport).toLowerCase()">{{ urgencyLabel(selectedReport) }}</span>
             </h3>
-            <p>{{ selectedReport.location || selectedReport.address || $t("dashboard.noAddress") }}<template v-if="selectedReport.district"> ¬∑ {{ selectedReport.district }}</template></p>
-            <p>{{ translateType(selectedReport.type) }} ¬∑ {{ stateLabel(selectedReport.state) }}</p>
+            <p>{{ selectedReport.location || selectedReport.address || $t("dashboard.noAddress") }}<template v-if="selectedReport.district"> ∑ {{ selectedReport.district }}</template></p>
+            <p>{{ translateType(selectedReport.type) }} ∑ {{ stateLabel(selectedReport.state) }}</p>
             <p v-if="selectedReport.description">{{ selectedReport.description }}</p>
           </div>
           <dl class="report-detail-meta">
@@ -114,7 +114,7 @@ export default {
   },
   computed: {
     isMunicipality() {
-      const role = localStorage.getItem('userRole');
+      const role = sessionStorage.getItem('userRole');
       return role === 'ROLE_MUNICIPALITY' || role === 'ROLE_ADMIN';
     },
     mapTitle() {
@@ -130,7 +130,7 @@ export default {
     if (this.isMunicipality) this.loadMunicipalityDistrict();
     if (!this.isMunicipality) {
       this.deleteExistingAlerts();
-      localStorage.setItem('alertsDeletedOnce', 'true');
+      sessionStorage.setItem('alertsDeletedOnce', 'true');
     }
   },
   watch: {
@@ -159,14 +159,14 @@ export default {
       this.map.flyTo({ center: suggestion.center, zoom: 14 });
       this.currentLocation.lat = suggestion.center[1];
       this.currentLocation.lng = suggestion.center[0];
-      localStorage.setItem("userLat", suggestion.center[1]);
-      localStorage.setItem("userLng", suggestion.center[0]);
+      sessionStorage.setItem("userLat", suggestion.center[1]);
+      sessionStorage.setItem("userLng", suggestion.center[0]);
       this.hasRoute = true;
       this.checkNearbyReports();
     },
     async deleteExistingAlerts() {
       try {
-        const userId = parseInt(localStorage.getItem("userId"));
+        const userId = parseInt(sessionStorage.getItem("userId"));
         if (!userId) {
           console.warn("User ID not found, skipping alert deletion.");
           return;
@@ -193,7 +193,7 @@ export default {
     },
     async checkNearbyReports() {
       if (this.isMunicipality) return;
-      console.log("√∞≈∏‚Äú¬° Ejecutando checkNearbyReports()...");
+      console.log("üì° Ejecutando checkNearbyReports()...");
       try {
         const [locRes, repRes] = await Promise.all([
           this.locationApi.getAll(),
@@ -209,7 +209,7 @@ export default {
 
         for (const loc of locations) {
           if (!loc || loc.latitude === 0 || loc.longitude === 0) continue;
-          console.log("Analizando ubicaci√≥n:", loc);
+          console.log("Analizando ubicaciÛn:", loc);
 
           if (this.processedReports.has(loc.idReport)) {
             console.log(`Reporte ${loc.idReport} ya procesado`);
@@ -240,7 +240,7 @@ export default {
         location: report.location,
         type: report.type?.toUpperCase(),
         description: report.description,
-        userId: parseInt(localStorage.getItem("userId")),
+        userId: parseInt(sessionStorage.getItem("userId")),
         imageUrl: report.imageUrl,
         reportId: report.id
       };
@@ -259,7 +259,7 @@ export default {
               alert.location === alertData.location
           );
           if (alreadyExists) {
-            console.log("Alerta ya existente, no se enviar√°:", alertData);
+            console.log("Alerta ya existente, no se enviar·:", alertData);
             return;
           }
         }
@@ -348,13 +348,13 @@ export default {
     async loadMunicipalityDistrict() {
       if (this.municipalityDistrict) return;
 
-      const userId = localStorage.getItem("iamUserId") || localStorage.getItem("userId");
+      const userId = sessionStorage.getItem("iamUserId") || sessionStorage.getItem("userId");
       try {
         if (userId) {
           const response = await this.userApi.getMunicipalityByUserId(userId);
           if ([200, 201].includes(response?.status) && response.data?.district) {
             this.municipalityDistrict = response.data.district;
-            localStorage.setItem("municipalityInfo", JSON.stringify(response.data));
+            sessionStorage.setItem("municipalityInfo", JSON.stringify(response.data));
             return;
           }
         }
@@ -363,7 +363,7 @@ export default {
       }
 
       try {
-        const stored = JSON.parse(localStorage.getItem("municipalityInfo") || "{}");
+        const stored = JSON.parse(sessionStorage.getItem("municipalityInfo") || "{}");
         this.municipalityDistrict = stored.district || "";
       } catch {
         this.municipalityDistrict = "";
@@ -570,8 +570,8 @@ export default {
     },
     focusCoordinates(lat, lng) {
       this.currentLocation = { lat, lng };
-      localStorage.setItem("userLat", lat);
-      localStorage.setItem("userLng", lng);
+      sessionStorage.setItem("userLat", lat);
+      sessionStorage.setItem("userLng", lng);
       this.map.flyTo({ center: [lng, lat], zoom: 16, essential: true });
     },
     createMarker(lng, lat, report) {
@@ -649,8 +649,8 @@ export default {
           this.map.flyTo({ center: location, zoom: 14 });
           this.currentLocation.lat = location[1];
           this.currentLocation.lng = location[0];
-          localStorage.setItem("userLat", location[1]);
-          localStorage.setItem("userLng", location[0]);
+          sessionStorage.setItem("userLat", location[1]);
+          sessionStorage.setItem("userLng", location[0]);
           this.hasRoute = true;
           await this.checkNearbyReports();
         } else {
@@ -671,8 +671,8 @@ export default {
       });
     },
     getCurrentLocation() {
-      const storedLat = localStorage.getItem("userLat");
-      const storedLng = localStorage.getItem("userLng");
+      const storedLat = sessionStorage.getItem("userLat");
+      const storedLng = sessionStorage.getItem("userLng");
       if (storedLat && storedLng) {
         this.currentLocation = {
           lat: parseFloat(storedLat),
@@ -686,8 +686,8 @@ export default {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude
               };
-              localStorage.setItem("userLat", this.currentLocation.lat);
-              localStorage.setItem("userLng", this.currentLocation.lng);
+              sessionStorage.setItem("userLat", this.currentLocation.lat);
+              sessionStorage.setItem("userLng", this.currentLocation.lng);
               this.initMap();
             },
             () => this.initMap()
@@ -712,8 +712,8 @@ export default {
         const center = this.map.getCenter();
         this.currentLocation.lat = center.lat;
         this.currentLocation.lng = center.lng;
-        localStorage.setItem("userLat", center.lat);
-        localStorage.setItem("userLng", center.lng);
+        sessionStorage.setItem("userLat", center.lat);
+        sessionStorage.setItem("userLng", center.lng);
         await this.checkNearbyReports();
       });
       this.map.addControl(new mapboxgl.NavigationControl());
@@ -745,12 +745,12 @@ export default {
 
 /* Botones oscuros */
 .mapboxgl-ctrl-group button {
-  background-color: #1e1e2f !important; /* fondo bot√≥n */
+  background-color: #1e1e2f !important; /* fondo botÛn */
   color: white !important;
   border: none;
 }
 
-/* √çconos dentro del bot√≥n (invertir color si es necesario) */
+/* Õconos dentro del botÛn (invertir color si es necesario) */
 .mapboxgl-ctrl-icon {
   filter: invert(1); /* blanco sobre fondo oscuro */
 }
@@ -774,7 +774,7 @@ export default {
   z-index: 10;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   max-height: 230px; /* altura para 5 items aprox */
-  min-height: 230px; /* asegura tama√±o fijo aunque haya menos */
+  min-height: 230px; /* asegura tamaÒo fijo aunque haya menos */
   overflow-y: auto;
 }
 

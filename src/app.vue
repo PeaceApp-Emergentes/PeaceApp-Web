@@ -102,7 +102,7 @@ export default {
     changeLanguage(event) {
       const selectedLanguage = event.target.value;
       this.$i18n.locale = selectedLanguage;
-      localStorage.setItem('language', selectedLanguage);
+      sessionStorage.setItem('language', selectedLanguage);
     },
     hideSelect() {
       this.showSelect = false;

@@ -1,4 +1,4 @@
-ï»¿<script>
+<script>
 import { authUserService } from "../../services/authuser.service.js";
 import { UserApiService } from "../../services/userapi.service.js";
 
@@ -8,13 +8,13 @@ const MUNICIPALITY_ROLE = "ROLE_MUNICIPALITY";
 const DEFAULT_PROFILE_IMAGE =
   "https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg";
 
-// Distritos de Lima Metropolitana y Callao, ordenados alfabÃ©ticamente por provincia.
+// Distritos de Lima Metropolitana y Callao, ordenados alfabéticamente por provincia.
 const DISTRICTS_BY_PROVINCE = {
   "Lima": [
-    "AncÃ³n",
+    "Ancón",
     "Ate",
     "Barranco",
-    "BreÃ±a",
+    "Breña",
     "Carabayllo",
     "Chaclacayo",
     "Chorrillos",
@@ -22,38 +22,38 @@ const DISTRICTS_BY_PROVINCE = {
     "Comas",
     "El Agustino",
     "Independencia",
-    "JesÃºs MarÃ­a",
+    "Jesús María",
     "La Molina",
     "La Victoria",
     "Lima (Cercado)",
     "Lince",
     "Los Olivos",
     "Lurigancho-Chosica",
-    "LurÃ­n",
+    "Lurín",
     "Magdalena del Mar",
     "Miraflores",
-    "PachacÃ¡mac",
+    "Pachacámac",
     "Pucusana",
     "Pueblo Libre",
     "Puente Piedra",
     "Punta Hermosa",
     "Punta Negra",
-    "RÃ­mac",
+    "Rímac",
     "San Bartolo",
     "San Borja",
     "San Isidro",
     "San Juan de Lurigancho",
     "San Juan de Miraflores",
     "San Luis",
-    "San MartÃ­n de Porres",
+    "San Martín de Porres",
     "San Miguel",
     "Santa Anita",
-    "Santa MarÃ­a del Mar",
+    "Santa María del Mar",
     "Santa Rosa",
     "Santiago de Surco",
     "Surquillo",
     "Villa El Salvador",
-    "Villa MarÃ­a del Triunfo"
+    "Villa María del Triunfo"
   ],
   "Callao": [
     "Bellavista",
@@ -61,7 +61,7 @@ const DISTRICTS_BY_PROVINCE = {
     "Carmen de la Legua Reynoso",
     "La Perla",
     "La Punta",
-    "Mi PerÃº",
+    "Mi Perú",
     "Ventanilla"
   ]
 };
@@ -93,7 +93,7 @@ export default {
     availableProvinces() {
       return Object.keys(DISTRICTS_BY_PROVINCE);
     },
-    /** Distritos filtrados segÃºn la provincia seleccionada y el texto de bÃºsqueda. */
+    /** Distritos filtrados según la provincia seleccionada y el texto de búsqueda. */
     filteredDistricts() {
       if (!this.formData.city) return [];
       const all = DISTRICTS_BY_PROVINCE[this.formData.city] || [];
@@ -128,7 +128,7 @@ export default {
     },
 
     closeDistrictDropdown() {
-      // Timeout para permitir que el click en una opciÃ³n se registre antes de cerrar.
+      // Timeout para permitir que el click en una opción se registre antes de cerrar.
       setTimeout(() => {
         this.isDistrictDropdownOpen = false;
       }, 200);
@@ -198,18 +198,18 @@ export default {
           return;
         }
 
-        // 2) Iniciar sesiÃ³n para obtener id de usuario y token
+        // 2) Iniciar sesión para obtener id de usuario y token
         const loginResponse = await this.authService.signInUser(username, this.formData.password);
         if (loginResponse?.status !== 200) {
           this.error = this.$t("userForm.login_after_signup_error");
           return;
         }
         const user = loginResponse.data;
-        localStorage.setItem("userEmail", user.username);
-        localStorage.setItem("userRole", MUNICIPALITY_ROLE);
-        localStorage.setItem("authToken", user.token);
-        localStorage.setItem("iamUserId", user.id);
-        localStorage.setItem("userId", user.id);
+        sessionStorage.setItem("userEmail", user.username);
+        sessionStorage.setItem("userRole", MUNICIPALITY_ROLE);
+        sessionStorage.setItem("authToken", user.token);
+        sessionStorage.setItem("iamUserId", user.id);
+        sessionStorage.setItem("userId", user.id);
 
         // 3) Crear el perfil de la municipalidad (datos de negocio)
         const profileResponse = await this.userApiService.createMunicipality({
@@ -223,7 +223,7 @@ export default {
         });
 
         if ([200, 201].includes(profileResponse?.status)) {
-          localStorage.setItem("municipalityInfo", JSON.stringify(profileResponse.data));
+          sessionStorage.setItem("municipalityInfo", JSON.stringify(profileResponse.data));
           this.success = this.$t("userForm.account_created");
           setTimeout(() => this.$router.push({ path: "/dashboard" }), 800);
         } else {
@@ -285,7 +285,7 @@ export default {
             autocomplete="off"
           />
           <span class="combobox-arrow">&#9662;</span>
-          <!-- Valor real para validaciÃ³n -->
+          <!-- Valor real para validación -->
           <input type="hidden" :value="formData.district" required />
         </div>
         <ul class="district-dropdown" v-show="isDistrictDropdownOpen && filteredDistricts.length > 0">
@@ -305,13 +305,13 @@ export default {
       </div>
     </div>
 
-    <!-- Fila 3: Email institucional + TelÃ©fono -->
+    <!-- Fila 3: Email institucional + Teléfono -->
     <div class="flex">
       <input :placeholder="$t('userForm.institutional_email')" class="input-style" type="email" required v-model="formData.institutionalEmail" />
       <input :placeholder="$t('userForm.municipality_phone')" class="input-style" type="tel" required maxlength="12" v-model="formData.phonenumber" />
     </div>
 
-    <!-- Fila 4: ContraseÃ±as -->
+    <!-- Fila 4: Contraseñas -->
     <div class="flex">
       <input :placeholder="$t('userForm.password')" class="input-style" type="password" required v-model="formData.password" />
       <input :placeholder="$t('userForm.confirm_password')" class="input-style" type="password" required v-model="confirmPassword" />

@@ -42,8 +42,8 @@ export default {
       return "Notification" in window ? Notification.permission : "unsupported";
     },
     syncSession() {
-      const role = localStorage.getItem("userRole");
-      const token = localStorage.getItem("authToken");
+      const role = sessionStorage.getItem("userRole");
+      const token = sessionStorage.getItem("authToken");
       const shouldEnable = Boolean(token) && (role === "ROLE_MUNICIPALITY" || role === "ROLE_ADMIN");
 
       if (shouldEnable && !this.isEnabled) {
@@ -63,13 +63,13 @@ export default {
     async loadMunicipalityDistrict() {
       if (this.municipalityDistrict) return;
 
-      const userId = localStorage.getItem("iamUserId") || localStorage.getItem("userId");
+      const userId = sessionStorage.getItem("iamUserId") || sessionStorage.getItem("userId");
       try {
         if (userId) {
           const response = await this.userApi.getMunicipalityByUserId(userId);
           if ([200, 201].includes(response?.status) && response.data?.district) {
             this.municipalityDistrict = response.data.district;
-            localStorage.setItem("municipalityInfo", JSON.stringify(response.data));
+            sessionStorage.setItem("municipalityInfo", JSON.stringify(response.data));
             return;
           }
         }
@@ -78,7 +78,7 @@ export default {
       }
 
       try {
-        const stored = JSON.parse(localStorage.getItem("municipalityInfo") || "{}");
+        const stored = JSON.parse(sessionStorage.getItem("municipalityInfo") || "{}");
         this.municipalityDistrict = stored.district || "";
       } catch {
         this.municipalityDistrict = "";

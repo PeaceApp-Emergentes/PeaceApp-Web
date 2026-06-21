@@ -9,7 +9,7 @@ export class UserApiService {
     }
 
     getAuthHeaders() {
-        const token = localStorage.getItem('authToken');
+        const token = sessionStorage.getItem('authToken');
         return {
             Authorization: `Bearer ${token}`
         };
@@ -116,7 +116,7 @@ export class UserApiService {
 
     async changeUserPassword(id, data) {
         try {
-            const token = localStorage.getItem('authToken');
+            const token = sessionStorage.getItem('authToken');
             return await axios.put(`${this.baseUrl}/users/change-password/${id}`, data, {
                 headers: {
                     Authorization: `Bearer ${token}`,

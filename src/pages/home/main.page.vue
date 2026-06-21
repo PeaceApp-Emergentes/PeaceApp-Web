@@ -66,11 +66,11 @@ export default {
 
         if (response && response.status === 200) {
           const user = response.data;
-          localStorage.setItem('authToken', user.token);
-          localStorage.setItem('userEmail', user.username);
-          localStorage.setItem('userRole', user.role);
-          localStorage.setItem('iamUserId', user.id);
-          localStorage.setItem('userId', user.id);
+          sessionStorage.setItem('authToken', user.token);
+          sessionStorage.setItem('userEmail', user.username);
+          sessionStorage.setItem('userRole', user.role);
+          sessionStorage.setItem('iamUserId', user.id);
+          sessionStorage.setItem('userId', user.id);
           return user;
         }
         this.error = 'main.errorInvalidCredentials';
@@ -84,7 +84,7 @@ export default {
 
     clearStoredSession() {
       ['authToken', 'userEmail', 'userRole', 'iamUserId', 'userId', 'userInfo', 'municipalityInfo']
-        .forEach((k) => localStorage.removeItem(k));
+        .forEach((k) => sessionStorage.removeItem(k));
     },
 
     async onSubmit() {
@@ -104,7 +104,7 @@ export default {
       }
 
       // La app web es exclusiva para municipalidades: solo municipalidad/admin pueden entrar.
-      const role = localStorage.getItem('userRole');
+      const role = sessionStorage.getItem('userRole');
       if (role !== 'ROLE_MUNICIPALITY' && role !== 'ROLE_ADMIN') {
         this.clearStoredSession();
         this.error = 'main.errorCitizenNoWeb';

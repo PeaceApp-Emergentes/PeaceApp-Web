@@ -11,7 +11,7 @@ export default {
   },
   computed: {
     role() {
-      return localStorage.getItem("userRole");
+      return sessionStorage.getItem("userRole");
     },
     canUseDashboard() {
       return this.role === "ROLE_ADMIN" || this.role === "ROLE_MUNICIPALITY";
@@ -22,7 +22,7 @@ export default {
   },
   methods: {
     sendGeneralEmergency() {
-      const userId = Number(localStorage.getItem("userId")) || 0;
+      const userId = Number(sessionStorage.getItem("userId")) || 0;
       const send = async (lat, lng) => {
         const location = `${lat}, ${lng}`;
         const response = await this.alertApi.createEmergency({
@@ -41,10 +41,10 @@ export default {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (pos) => send(pos.coords.latitude, pos.coords.longitude),
-          () => send(localStorage.getItem("userLat") || 0, localStorage.getItem("userLng") || 0)
+          () => send(sessionStorage.getItem("userLat") || 0, sessionStorage.getItem("userLng") || 0)
         );
       } else {
-        send(localStorage.getItem("userLat") || 0, localStorage.getItem("userLng") || 0);
+        send(sessionStorage.getItem("userLat") || 0, sessionStorage.getItem("userLng") || 0);
       }
     },
     whatsappUrl() {

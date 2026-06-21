@@ -56,7 +56,7 @@ export default {
   },
   async mounted() {
     try {
-      const userId = parseInt(localStorage.getItem("userId"));
+      const userId = parseInt(sessionStorage.getItem("userId"));
       const response = await this.alertService.getByUserId(userId);
       if (response?.data) {
         this.alerts = response.data;

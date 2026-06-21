@@ -123,7 +123,7 @@ export default {
   methods: {
     async createReport() {
       await this.syncReportProfileId();
-      this.reportData.user_id = parseInt(localStorage.getItem("userId")) || 0;
+      this.reportData.user_id = parseInt(sessionStorage.getItem("userId")) || 0;
 
       if (!this.reportData.image) {
         return alert(this.$t('reportForm.alertImage'));
@@ -176,17 +176,17 @@ export default {
     },
 
     async syncReportProfileId() {
-      const role = localStorage.getItem("userRole");
-      const email = localStorage.getItem("userEmail");
-      const storedUserInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-      const iamUserId = localStorage.getItem("iamUserId") || storedUserInfo.userId || localStorage.getItem("userId");
+      const role = sessionStorage.getItem("userRole");
+      const email = sessionStorage.getItem("userEmail");
+      const storedUserInfo = JSON.parse(sessionStorage.getItem("userInfo") || "{}");
+      const iamUserId = sessionStorage.getItem("iamUserId") || storedUserInfo.userId || sessionStorage.getItem("userId");
       if (!email || !iamUserId) return;
 
       const response = await this.userApi.getUserByEmail(email);
       if (response?.data?.id) {
-        localStorage.setItem("userId", response.data.id);
-        localStorage.setItem("iamUserId", response.data.userId || localStorage.getItem("iamUserId"));
-        localStorage.setItem("userInfo", JSON.stringify(response.data));
+        sessionStorage.setItem("userId", response.data.id);
+        sessionStorage.setItem("iamUserId", response.data.userId || sessionStorage.getItem("iamUserId"));
+        sessionStorage.setItem("userInfo", JSON.stringify(response.data));
         return;
       }
 
@@ -213,8 +213,8 @@ export default {
 
       const createdProfile = await this.userApi.createUser(mirrorProfile);
       if ([200, 201].includes(createdProfile?.status) && createdProfile?.data?.id) {
-        localStorage.setItem("userId", createdProfile.data.id);
-        localStorage.setItem("reportUserInfo", JSON.stringify(createdProfile.data));
+        sessionStorage.setItem("userId", createdProfile.data.id);
+        sessionStorage.setItem("reportUserInfo", JSON.stringify(createdProfile.data));
         return;
       }
 
@@ -236,8 +236,8 @@ export default {
     initMap() {
       mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
-      const storedLat = localStorage.getItem("userLat");
-      const storedLng = localStorage.getItem("userLng");
+      const storedLat = sessionStorage.getItem("userLat");
+      const storedLng = sessionStorage.getItem("userLng");
 
       let userLocation;
 
@@ -252,9 +252,9 @@ export default {
               const lat = position.coords.latitude;
               const lng = position.coords.longitude;
 
-              // Guardar en localStorage
-              localStorage.setItem("userLat", lat);
-              localStorage.setItem("userLng", lng);
+              // Guardar en sessionStorage
+              sessionStorage.setItem("userLat", lat);
+              sessionStorage.setItem("userLng", lng);
 
               userLocation = [lng, lat];
               this.setupMap(userLocation);

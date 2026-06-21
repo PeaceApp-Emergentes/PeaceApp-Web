@@ -35,9 +35,9 @@ export default {
       this.success = null;
       this.loading = true;
 
-      const recoveryEmail = localStorage.getItem("recoveryEmail");
-      const authToken = localStorage.getItem("authToken");
-      const userId = parseInt(localStorage.getItem("userId"));
+      const recoveryEmail = sessionStorage.getItem("recoveryEmail") || this.$route.query.email;
+      const authToken = sessionStorage.getItem("authToken");
+      const userId = parseInt(sessionStorage.getItem("userId"));
 
       try {
         if (recoveryEmail) {
@@ -48,7 +48,7 @@ export default {
           const response = await this.authService.changePassword(payload);
           if (response.status === 202) {
             this.success = this.$t('main.recover.success');
-            localStorage.removeItem("recoveryEmail");
+            sessionStorage.removeItem("recoveryEmail");
             setTimeout(() => this.$router.push('/'), 3000);
           } else {
             this.error = this.$t('main.recover.error');

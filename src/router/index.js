@@ -29,7 +29,7 @@ const router= createRouter({
             path: '/user/notifications',
             component: ViewNotificationsComponent,
             beforeEnter: () => {
-                const role = localStorage.getItem('userRole');
+                const role = sessionStorage.getItem('userRole');
                 if (role === 'ROLE_MUNICIPALITY' || role === 'ROLE_ADMIN') return '/dashboard';
                 return true;
             }
@@ -40,15 +40,21 @@ const router= createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-    const token = localStorage.getItem('authToken');
+    const publicPages = ['/', '/password-recover', '/recover', '/map'];
+    const token = sessionStorage.getItem('authToken');
+
+    if (publicPages.includes(to.path)) {
+        next();
+        return;
+    }
+
     if (token) {
-        if (to.path === '/' || to.path === '/login' || to.path === '/password-recover' || to.path === '/recover') {
+        if (to.path === '/login') {
             next('/dashboard');
         } else {
             next();
         }
     } else {
-        const publicPages = ['/', '/password-recover', '/recover', '/map'];
         if (!publicPages.includes(to.path) && !to.path.startsWith('/report/')) {
             next('/');
         } else {

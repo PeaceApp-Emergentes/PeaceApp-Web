@@ -43,7 +43,7 @@ export default {
     },
     logout() {
       ['authToken', 'userEmail', 'userRole', 'iamUserId', 'userId', 'userInfo', 'municipalityInfo']
-        .forEach((k) => localStorage.removeItem(k));
+        .forEach((k) => sessionStorage.removeItem(k));
       this.$router.push('/');
     }
   }

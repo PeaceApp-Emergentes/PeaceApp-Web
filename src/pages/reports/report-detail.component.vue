@@ -105,8 +105,8 @@ export default {
       userService: new UserApiService(),
       report: null,
       loading: true,
-      userId: localStorage.getItem("userId"),
-      role: localStorage.getItem("userRole")
+      userId: sessionStorage.getItem("userId"),
+      role: sessionStorage.getItem("userRole")
     };
   },
 
@@ -116,8 +116,8 @@ export default {
 
   computed: {
     canDelete() {
-      const loggedUserId = Number(localStorage.getItem("userId"));
-      const role = localStorage.getItem("userRole");
+      const loggedUserId = Number(sessionStorage.getItem("userId"));
+      const role = sessionStorage.getItem("userRole");
 
       return (
           this.report?.userId === loggedUserId ||
@@ -127,7 +127,7 @@ export default {
     },
 
     isAdmin() {
-      const role = localStorage.getItem("userRole");
+      const role = sessionStorage.getItem("userRole");
       return role === "ROLE_ADMIN" || role === "ROLE_MUNICIPALITY";
     },
 
@@ -157,7 +157,7 @@ export default {
   },
 
   mounted() {
-    console.log("🔎 Rol actual:", localStorage.getItem("userRole"));},
+    console.log("🔎 Rol actual:", sessionStorage.getItem("userRole"));},
   methods: {
     async fetchReport() {
       try {
@@ -167,7 +167,7 @@ export default {
         this.report = res.data;
 
         // 🔥 SI ES ADMIN Y EL REPORTE ESTÁ EN PENDING → MARCAR COMO "IN REVIEW"
-        const role = localStorage.getItem("userRole");
+        const role = sessionStorage.getItem("userRole");
         if ((role === "ROLE_ADMIN" || role === "ROLE_MUNICIPALITY") && this.report.state === "PENDING") {
           console.log("⚡ Marcando reporte como IN REVIEW...");
           await this.api.markInReview(id);

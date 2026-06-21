@@ -20,9 +20,9 @@ export default {
   },
   methods: {
     getSessionData() {
-      this.userEmail = localStorage.getItem('userEmail');
-      this.userRole = localStorage.getItem('userRole') || 'ROLE_USER';
-      this.iamUserId = localStorage.getItem('iamUserId') || localStorage.getItem('userId');
+      this.userEmail = sessionStorage.getItem('userEmail');
+      this.userRole = sessionStorage.getItem('userRole') || 'ROLE_USER';
+      this.iamUserId = sessionStorage.getItem('iamUserId') || sessionStorage.getItem('userId');
     },
 
     async fetchUserInfo() {
@@ -45,7 +45,7 @@ export default {
               email: this.userEmail,
               role: this.userRole
             };
-            localStorage.setItem('userInfo', JSON.stringify(this.userInfo));
+            sessionStorage.setItem('userInfo', JSON.stringify(this.userInfo));
             return;
           }
         } else {
@@ -60,7 +60,7 @@ export default {
           ...(response.data || {}),
           role: this.userRole
         };
-        localStorage.setItem('userInfo', JSON.stringify(this.userInfo));
+        sessionStorage.setItem('userInfo', JSON.stringify(this.userInfo));
       } catch (error) {
         console.error("Error fetching user info:", error);
       }

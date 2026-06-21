@@ -18,28 +18,24 @@ export default {
 
     async validateAndRedirect() {
       if (this.email.trim() === '') {
-        alert(this.$t('main.recover.alert')); // "Por favor, ingresa tu correo."
+        alert(this.$t('main.recover.alert'));
         return;
       }
 
       try {
-        const dummyPassword = 'owo'; // HOLY FUCK
+        const dummyPassword = 'owo';
         const loginResponse = await this.authService.signInUser(this.email, dummyPassword);
 
         if (loginResponse.status === 200 && loginResponse.data) {
           const user = loginResponse.data;
-
-
-          localStorage.setItem("recoveryEmail", user.username); // Asumiendo que username === email
-
-          // Redirigimos a pantalla de recuperación
+          sessionStorage.setItem("recoveryEmail", user.username);
           this.$router.push('/recover');
         } else {
-          alert(this.$t('main.recover.notFound')); // "Correo no registrado."
+          alert(this.$t('main.recover.notFound'));
         }
       } catch (error) {
         console.error('Error during dummy login', error);
-        alert(this.$t('main.recover.notFound')); // "Correo no registrado."
+        alert(this.$t('main.recover.notFound'));
       }
     }
   }

@@ -7,7 +7,7 @@ export class AlertApiService {
     }
 
     getAuthHeaders() {
-        const token = localStorage.getItem("authToken");
+        const token = sessionStorage.getItem("authToken");
         return {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json"

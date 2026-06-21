@@ -19,7 +19,7 @@ export class authUserService {
 
             // Guarda el token si existe
             if (response.data.token) {
-                localStorage.setItem('authToken', response.data.token);
+                sessionStorage.setItem('authToken', response.data.token);
             }
 
             return response;
@@ -38,7 +38,7 @@ export class authUserService {
     }
     async changePassword(data) {
         try {
-            const token = localStorage.getItem('authToken'); // <- necesario
+            const token = sessionStorage.getItem('authToken'); // <- necesario
             return await this.http.put('/authentication/change-password', data, {
                 headers: {
                     Authorization: `Bearer ${token}`

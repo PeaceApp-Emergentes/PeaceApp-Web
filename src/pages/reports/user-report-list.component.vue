@@ -71,7 +71,7 @@ export default {
   },
   async created() {
     await this.fetchReports();
-    this.role = localStorage.getItem("userRole");
+    this.role = sessionStorage.getItem("userRole");
   },
   computed: {
     filteredReports() {
@@ -113,8 +113,8 @@ export default {
     },
     async fetchReports() {
       try {
-        const userId = localStorage.getItem("userId");
-        const role = localStorage.getItem("userRole");
+        const userId = sessionStorage.getItem("userId");
+        const role = sessionStorage.getItem("userRole");
 
         let response;
 
