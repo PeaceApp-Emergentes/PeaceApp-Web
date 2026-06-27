@@ -11,6 +11,10 @@ import MapCitizen from '../pages/map/map-citizen.page.vue'
 import ViewNotificationsComponent from "../pages/notifications/view-notifications.component.vue";
 import ReportDetailComponent from "@/pages/reports/report-detail.component.vue";
 import MunicipalityDashboard from "../pages/municipality/municipality-dashboard.page.vue";
+import PaymentSuccess from "../pages/payment/payment-success.page.vue";
+import PaymentCancel from "../pages/payment/payment-cancel.page.vue";
+import SubscriptionPage from "../pages/subscription/subscription.page.vue";
+import { PaymentApiService } from "../services/paymentapi.service.js";
 const router= createRouter({
     history: createWebHistory(),
     routes: [
@@ -36,31 +40,66 @@ const router= createRouter({
         },
         {path: '/dashboard', component: MunicipalityDashboard},
         {path: '/municipality/dashboard', redirect: '/dashboard'},
+        {path: '/payment-success', component: PaymentSuccess},
+        {path: '/payment-cancel', component: PaymentCancel},
+        {path: '/subscription', component: SubscriptionPage},
     ]
 });
 
-router.beforeEach((to, from, next) => {
-    const publicPages = ['/', '/password-recover', '/recover', '/map'];
+// Rutas del area municipal que requieren suscripcion activa.
+const MUNICIPALITY_GATED = ['/dashboard', '/map'];
+
+async function municipalityHasActiveSub() {
+    let active = sessionStorage.getItem('subActive');
+    if (active === 'true') return true;
+    if (active === 'false') return false;
+    // Sin cache: consultar una vez. Fail-open ante errores para no bloquear por fallos de red.
+    try {
+        const email = sessionStorage.getItem('userEmail');
+        if (!email) return true;
+        const res = await new PaymentApiService().getSubscription(email);
+        active = (res && res.data && res.data.active) ? 'true' : 'false';
+        sessionStorage.setItem('subActive', active);
+        return active === 'true';
+    } catch (e) {
+        return true;
+    }
+}
+
+router.beforeEach(async (to, from, next) => {
+    const publicPages = ['/', '/password-recover', '/recover', '/map', '/payment-success', '/payment-cancel'];
     const token = sessionStorage.getItem('authToken');
+
+    // Bloqueo por suscripcion: SOLO municipalidad logueada, antes de servir paginas publicas (ej. /map).
+    const roleEarly = sessionStorage.getItem('userRole');
+    if (token && roleEarly === 'ROLE_MUNICIPALITY' && MUNICIPALITY_GATED.includes(to.path)) {
+        const ok = await municipalityHasActiveSub();
+        if (!ok) {
+            next('/subscription');
+            return;
+        }
+    }
 
     if (publicPages.includes(to.path)) {
         next();
         return;
     }
 
-    if (token) {
-        if (to.path === '/login') {
-            next('/dashboard');
-        } else {
-            next();
-        }
-    } else {
+    if (!token) {
         if (!publicPages.includes(to.path) && !to.path.startsWith('/report/')) {
             next('/');
         } else {
             next();
         }
+        return;
     }
+
+    if (to.path === '/login') {
+        next('/dashboard');
+        return;
+    }
+
+    next();
 });
 
 export default router;

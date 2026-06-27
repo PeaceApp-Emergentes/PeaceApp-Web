@@ -27,15 +27,15 @@
 
     <div v-if="selectedReport" class="report-popup-overlay" @click.self="selectedReport = null">
       <aside class="report-floating-popup" :class="{ emergency: isEmergencyReport(selectedReport), attended: selectedReport.state === 'ATTENDED' }">
-        <button class="close-report-panel" type="button" :aria-label="$t('map.closeDetail')" @click="selectedReport = null">◊</button>
+        <button class="close-report-panel" type="button" :aria-label="$t('map.closeDetail')" @click="selectedReport = null">√ó</button>
         <div class="report-detail-grid">
           <div class="report-detail-main">
             <h3>
               {{ selectedReport.title || $t("reports.details") }}
               <span class="urgency-badge" :class="'urgency-' + urgencyLevel(selectedReport).toLowerCase()">{{ urgencyLabel(selectedReport) }}</span>
             </h3>
-            <p>{{ selectedReport.location || selectedReport.address || $t("dashboard.noAddress") }}<template v-if="selectedReport.district"> ∑ {{ selectedReport.district }}</template></p>
-            <p>{{ translateType(selectedReport.type) }} ∑ {{ stateLabel(selectedReport.state) }}</p>
+            <p>{{ selectedReport.location || selectedReport.address || $t("dashboard.noAddress") }}<template v-if="selectedReport.district"> ¬∑ {{ selectedReport.district }}</template></p>
+            <p>{{ translateType(selectedReport.type) }} ¬∑ {{ stateLabel(selectedReport.state) }}</p>
             <p v-if="selectedReport.description">{{ selectedReport.description }}</p>
           </div>
           <dl class="report-detail-meta">
@@ -209,7 +209,7 @@ export default {
 
         for (const loc of locations) {
           if (!loc || loc.latitude === 0 || loc.longitude === 0) continue;
-          console.log("Analizando ubicaciÛn:", loc);
+          console.log("Analizando ubicaci√≥n:", loc);
 
           if (this.processedReports.has(loc.idReport)) {
             console.log(`Reporte ${loc.idReport} ya procesado`);
@@ -259,7 +259,7 @@ export default {
               alert.location === alertData.location
           );
           if (alreadyExists) {
-            console.log("Alerta ya existente, no se enviar·:", alertData);
+            console.log("Alerta ya existente, no se enviar√°:", alertData);
             return;
           }
         }
@@ -745,12 +745,12 @@ export default {
 
 /* Botones oscuros */
 .mapboxgl-ctrl-group button {
-  background-color: #1e1e2f !important; /* fondo botÛn */
+  background-color: #1e1e2f !important; /* fondo bot√≥n */
   color: white !important;
   border: none;
 }
 
-/* Õconos dentro del botÛn (invertir color si es necesario) */
+/* √çconos dentro del bot√≥n (invertir color si es necesario) */
 .mapboxgl-ctrl-icon {
   filter: invert(1); /* blanco sobre fondo oscuro */
 }
@@ -774,7 +774,7 @@ export default {
   z-index: 10;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   max-height: 230px; /* altura para 5 items aprox */
-  min-height: 230px; /* asegura tamaÒo fijo aunque haya menos */
+  min-height: 230px; /* asegura tama√±o fijo aunque haya menos */
   overflow-y: auto;
 }
 

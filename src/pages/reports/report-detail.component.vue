@@ -57,6 +57,42 @@
       </div>
 
 
+      <!-- ANÁLISIS IA (municipalidad) -->
+      <div v-if="isAdmin" class="ai-analysis">
+        <button class="ai-analyze-btn" :disabled="aiLoading" @click="analyzeWithAi">
+          {{ aiLoading ? "Analizando con IA..." : "Analizar con IA" }}
+        </button>
+
+        <div v-if="aiError" class="ai-error">{{ aiError }}</div>
+
+        <div v-if="aiText || aiImage" class="ai-log">
+          <h3>Análisis IA del reporte</h3>
+
+          <div v-if="aiText" class="ai-block">
+            <strong>Título y descripción</strong>
+            <p v-if="aiText.valid === false" class="ai-invalid">⚠ El título/descripción no describen un incidente válido.</p>
+            <p v-else class="ai-ok">Título y descripción válidos.</p>
+            <p>Tipo sugerido: {{ aiText.incidentType }} · Severidad: {{ aiText.severity }}</p>
+            <p>{{ aiText.summary }}</p>
+            <ul v-if="aiText.recommendedActions && aiText.recommendedActions.length">
+              <li v-for="(a, i) in aiText.recommendedActions" :key="i">{{ a }}</li>
+            </ul>
+          </div>
+
+          <div v-if="aiImage" class="ai-block">
+            <strong>Imagen</strong>
+            <p :class="aiImage.validImage ? 'ai-ok' : 'ai-invalid'">
+              {{ aiImage.validImage ? "Imagen válida como evidencia" : "⚠ La imagen no parece evidencia válida" }}
+            </p>
+            <p>Tipo detectado: {{ aiImage.detectedType }}</p>
+            <p>{{ aiImage.summary }}</p>
+            <ul v-if="aiImage.observedSignals && aiImage.observedSignals.length">
+              <li v-for="(sig, i) in aiImage.observedSignals" :key="i">{{ sig }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       <!-- BOTÓN ELIMINAR -->
       <button v-if="canDelete" class="delete-btn" @click="deleteReport">
         {{ $t('reports.delete_report') }}
@@ -93,6 +129,7 @@
 <script>
 import { ReportApiService } from "../../services/reportapi.service.js";
 import { UserApiService } from "../../services/userapi.service.js";
+import { AiApiService } from "../../services/aiapi.service.js";
 import CitizenToolbar from "../../components/toolbar/toolbar-citizen.component.vue";
 
 export default {
@@ -103,6 +140,11 @@ export default {
     return {
       api: new ReportApiService(),
       userService: new UserApiService(),
+      aiApi: new AiApiService(),
+      aiLoading: false,
+      aiText: null,
+      aiImage: null,
+      aiError: null,
       report: null,
       loading: true,
       userId: sessionStorage.getItem("userId"),
@@ -183,6 +225,34 @@ export default {
         console.error("Error loading report:", err);
       } finally {
         this.loading = false;
+      }
+    },
+    async analyzeWithAi() {
+      this.aiLoading = true;
+      this.aiError = null;
+      this.aiText = null;
+      this.aiImage = null;
+      try {
+        const textRes = await this.aiApi.classifyIncident(
+          `${this.report.title || ""}. ${this.report.description || ""}`.trim(),
+          this.report.location || "",
+          this.report.district || ""
+        );
+        if (textRes && textRes.status === 200) this.aiText = textRes.data;
+
+        if (this.report.imageUrl) {
+          const imgRes = await this.aiApi.analyzeEvidence(this.report.imageUrl, "IMAGE", this.report.description || "");
+          if (imgRes && imgRes.status === 200) this.aiImage = imgRes.data;
+        }
+
+        if (!this.aiText && !this.aiImage) {
+          this.aiError = "No se pudo obtener el análisis de IA. Verifica que el servicio esté activo.";
+        }
+      } catch (e) {
+        console.error("AI analysis error", e);
+        this.aiError = "Error al analizar con IA.";
+      } finally {
+        this.aiLoading = false;
       }
     },
     async deleteReport() {

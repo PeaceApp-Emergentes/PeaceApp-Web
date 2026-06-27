@@ -1,9 +1,10 @@
 <script>
 import { authUserService } from "./services/authuser.service.js";
 import MunicipalityEmergencyNotifier from "./components/notifications/municipality-emergency-notifier.component.vue";
+import MunicipalityAiChat from "./components/ai/municipality-ai-chat.component.vue";
 
 export default {
-  components: { MunicipalityEmergencyNotifier },
+  components: { MunicipalityEmergencyNotifier, MunicipalityAiChat },
   data() {
     return {
       users: [],
@@ -122,6 +123,7 @@ export default {
       <router-view />
     </div>
     <MunicipalityEmergencyNotifier />
+    <MunicipalityAiChat />
 
     <!-- Modals -->
     <div v-if="activeModal === 'faq'" class="modal-overlay" @click.self="closeModal">

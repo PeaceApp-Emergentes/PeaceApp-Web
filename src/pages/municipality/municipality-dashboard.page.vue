@@ -3,6 +3,7 @@ import ToolbarCitizen from "../../components/toolbar/toolbar-citizen.component.v
 import { ReportApiService } from "../../services/reportapi.service.js";
 import { AlertApiService } from "../../services/alertapi.service.js";
 import { UserApiService } from "../../services/userapi.service.js";
+import { AiApiService } from "../../services/aiapi.service.js";
 
 export default {
   name: "MunicipalityDashboardPage",
@@ -23,7 +24,10 @@ export default {
       dateTo: "",
       urgencyFilter: "",
       sortBy: "urgency",
-      busyReportId: null
+      busyReportId: null,
+      aiApi: new AiApiService(),
+      aiAnalysis: {},
+      aiModalReportId: null
     };
   },
   computed: {
@@ -244,6 +248,58 @@ export default {
       if (report.state === "REJECTED" || report.state === "ATTENDED") return;
       await this.runReportAction(report, () => this.reportApi.setEmergency(report.id, !this.isEmergencyFlag(report)));
     },
+    aiCacheKey(id) {
+      return "peaceapp_ai_analysis_" + id;
+    },
+    aiButtonLabel(report) {
+      const a = this.aiAnalysis[report.id];
+      if (a && a.loading) return "Analizando con IA...";
+      if ((a && (a.text || a.image)) || localStorage.getItem(this.aiCacheKey(report.id))) return "Ver análisis IA";
+      return "Analizar con IA";
+    },
+    async analyzeReport(report) {
+      const id = report.id;
+      // Cache en memoria o localStorage para no volver a consumir la IA.
+      if (!this.aiAnalysis[id]) {
+        const stored = localStorage.getItem(this.aiCacheKey(id));
+        if (stored) {
+          try { this.aiAnalysis[id] = JSON.parse(stored); } catch (e) { /* ignore */ }
+        }
+      }
+      const cached = this.aiAnalysis[id];
+      if (cached && !cached.loading && (cached.text || cached.image || cached.error)) {
+        this.aiModalReportId = id;
+        return;
+      }
+
+      this.aiAnalysis[id] = { loading: true, text: null, image: null, error: null };
+      this.aiModalReportId = id;
+      const a = this.aiAnalysis[id];
+      try {
+        const textRes = await this.aiApi.classifyIncident(
+          `${report.title || ""}. ${report.description || ""}`.trim(),
+          report.location || "",
+          report.district || ""
+        );
+        if (textRes && textRes.status === 200) a.text = textRes.data;
+
+        const imgUrl = report.imageUrl || report.image;
+        if (imgUrl) {
+          const imgRes = await this.aiApi.analyzeEvidence(imgUrl, "IMAGE", report.description || "");
+          if (imgRes && imgRes.status === 200) a.image = imgRes.data;
+        }
+
+        if (!a.text && !a.image) a.error = "No se pudo obtener el análisis de IA. Verifica el servicio.";
+      } catch (e) {
+        console.error("AI analysis error", e);
+        a.error = "Error al analizar con IA.";
+      } finally {
+        a.loading = false;
+        try {
+          localStorage.setItem(this.aiCacheKey(id), JSON.stringify({ loading: false, text: a.text, image: a.image, error: a.error }));
+        } catch (e) { /* ignore */ }
+      }
+    },
     sortReports(list) {
       const time = (r) => (r.createdAt ? new Date(r.createdAt).getTime() : 0);
       const copy = [...list];
@@ -417,9 +473,37 @@ export default {
           <button class="attend" :disabled="busyReportId === report.id || report.state !== 'APPROVED'" @click="attend(report)">{{ $t("dashboard.markAttended") }}</button>
           <button class="reject" :disabled="busyReportId === report.id || report.state === 'REJECTED' || report.state === 'ATTENDED'" @click="reject(report)">{{ $t("reports.reject") }}</button>
           <button class="emergency-toggle" :disabled="busyReportId === report.id || report.state === 'REJECTED' || report.state === 'ATTENDED'" @click="toggleEmergency(report)">{{ isEmergencyFlag(report) ? $t("dashboard.unmarkEmergency") : $t("dashboard.markEmergency") }}</button>
+          <button class="ai-action" type="button" :disabled="aiAnalysis[report.id] && aiAnalysis[report.id].loading" @click="analyzeReport(report)">{{ aiButtonLabel(report) }}</button>
         </div>
       </article>
     </section>
+
+    <div v-if="aiModalReportId" class="ai-modal-overlay" @click.self="aiModalReportId = null">
+      <div class="ai-modal">
+        <button class="ai-modal-close" @click="aiModalReportId = null">×</button>
+        <h3>Análisis IA del reporte</h3>
+        <div v-if="aiAnalysis[aiModalReportId] && aiAnalysis[aiModalReportId].loading" class="ai-loading">Analizando con IA...</div>
+        <template v-else-if="aiAnalysis[aiModalReportId]">
+          <div v-if="aiAnalysis[aiModalReportId].error" class="ai-invalid">{{ aiAnalysis[aiModalReportId].error }}</div>
+          <div v-if="aiAnalysis[aiModalReportId].text" class="ai-block">
+            <strong>Título y descripción</strong>
+            <p :class="aiAnalysis[aiModalReportId].text.valid === false ? 'ai-invalid' : 'ai-ok'">
+              {{ aiAnalysis[aiModalReportId].text.valid === false ? "⚠ El título/descripción no describen un incidente válido." : "Título y descripción válidos." }}
+            </p>
+            <p>Tipo sugerido: {{ aiAnalysis[aiModalReportId].text.incidentType }} · Severidad: {{ aiAnalysis[aiModalReportId].text.severity }}</p>
+            <p>{{ aiAnalysis[aiModalReportId].text.summary }}</p>
+          </div>
+          <div v-if="aiAnalysis[aiModalReportId].image" class="ai-block">
+            <strong>Imagen</strong>
+            <p :class="aiAnalysis[aiModalReportId].image.validImage ? 'ai-ok' : 'ai-invalid'">
+              {{ aiAnalysis[aiModalReportId].image.validImage ? "Imagen válida como evidencia" : "⚠ La imagen no parece evidencia válida" }}
+            </p>
+            <p>Tipo detectado: {{ aiAnalysis[aiModalReportId].image.detectedType }}</p>
+            <p>{{ aiAnalysis[aiModalReportId].image.summary }}</p>
+          </div>
+        </template>
+      </div>
+    </div>
   </main>
 </template>
 
@@ -720,4 +804,14 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 }
+.ai-action { background: #6a3fb5; }
+.ai-log-card { margin-top: 10px; padding: 12px; border: 1px solid #d8e1e6; border-radius: 8px; background: #f7f9fb; grid-column: 1 / -1; }
+.ai-block { margin-bottom: 8px; }
+.ai-ok { color: #1e7e34; font-weight: 700; }
+.ai-invalid { color: #c0392b; font-weight: 700; }
+.ai-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; z-index: 4000; padding: 16px; }
+.ai-modal { position: relative; background: #fff; border-radius: 12px; padding: 24px; max-width: 560px; width: 100%; max-height: 85vh; overflow-y: auto; box-shadow: 0 16px 48px rgba(0,0,0,.3); }
+.ai-modal-close { position: absolute; top: 10px; right: 14px; background: transparent; border: 0; font-size: 24px; cursor: pointer; color: #555; }
+.ai-modal h3 { margin: 0 0 14px; }
+.ai-loading { padding: 12px; color: #555; }
 </style>

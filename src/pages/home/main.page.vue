@@ -71,6 +71,7 @@ export default {
           sessionStorage.setItem('userRole', user.role);
           sessionStorage.setItem('iamUserId', user.id);
           sessionStorage.setItem('userId', user.id);
+          sessionStorage.removeItem('subActive');
           return user;
         }
         this.error = 'main.errorInvalidCredentials';
@@ -83,7 +84,7 @@ export default {
     },
 
     clearStoredSession() {
-      ['authToken', 'userEmail', 'userRole', 'iamUserId', 'userId', 'userInfo', 'municipalityInfo']
+      ['authToken', 'userEmail', 'userRole', 'iamUserId', 'userId', 'userInfo', 'municipalityInfo', 'subActive']
         .forEach((k) => sessionStorage.removeItem(k));
     },
 

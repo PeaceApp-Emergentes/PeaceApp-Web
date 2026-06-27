@@ -1,6 +1,7 @@
 <script>
 import { authUserService } from "../../services/authuser.service.js";
 import { UserApiService } from "../../services/userapi.service.js";
+import { PaymentApiService } from "../../services/paymentapi.service.js";
 
 // Registro exclusivo para MUNICIPALIDADES (la app web es solo para municipalidades).
 // Solo se piden los datos necesarios para el negocio municipal.
@@ -8,13 +9,13 @@ const MUNICIPALITY_ROLE = "ROLE_MUNICIPALITY";
 const DEFAULT_PROFILE_IMAGE =
   "https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg";
 
-// Distritos de Lima Metropolitana y Callao, ordenados alfabéticamente por provincia.
+// Distritos de Lima Metropolitana y Callao, ordenados alfabÃ©ticamente por provincia.
 const DISTRICTS_BY_PROVINCE = {
   "Lima": [
-    "Ancón",
+    "AncÃ³n",
     "Ate",
     "Barranco",
-    "Breña",
+    "BreÃ±a",
     "Carabayllo",
     "Chaclacayo",
     "Chorrillos",
@@ -22,38 +23,38 @@ const DISTRICTS_BY_PROVINCE = {
     "Comas",
     "El Agustino",
     "Independencia",
-    "Jesús María",
+    "JesÃºs MarÃ­a",
     "La Molina",
     "La Victoria",
     "Lima (Cercado)",
     "Lince",
     "Los Olivos",
     "Lurigancho-Chosica",
-    "Lurín",
+    "LurÃ­n",
     "Magdalena del Mar",
     "Miraflores",
-    "Pachacámac",
+    "PachacÃ¡mac",
     "Pucusana",
     "Pueblo Libre",
     "Puente Piedra",
     "Punta Hermosa",
     "Punta Negra",
-    "Rímac",
+    "RÃ­mac",
     "San Bartolo",
     "San Borja",
     "San Isidro",
     "San Juan de Lurigancho",
     "San Juan de Miraflores",
     "San Luis",
-    "San Martín de Porres",
+    "San MartÃ­n de Porres",
     "San Miguel",
     "Santa Anita",
-    "Santa María del Mar",
+    "Santa MarÃ­a del Mar",
     "Santa Rosa",
     "Santiago de Surco",
     "Surquillo",
     "Villa El Salvador",
-    "Villa María del Triunfo"
+    "Villa MarÃ­a del Triunfo"
   ],
   "Callao": [
     "Bellavista",
@@ -61,7 +62,7 @@ const DISTRICTS_BY_PROVINCE = {
     "Carmen de la Legua Reynoso",
     "La Perla",
     "La Punta",
-    "Mi Perú",
+    "Mi PerÃº",
     "Ventanilla"
   ]
 };
@@ -71,6 +72,7 @@ export default {
     return {
       authService: new authUserService(),
       userApiService: new UserApiService(),
+      paymentApiService: new PaymentApiService(),
       confirmPassword: "",
       isSubmitting: false,
       districtSearch: "",
@@ -93,7 +95,7 @@ export default {
     availableProvinces() {
       return Object.keys(DISTRICTS_BY_PROVINCE);
     },
-    /** Distritos filtrados según la provincia seleccionada y el texto de búsqueda. */
+    /** Distritos filtrados segÃºn la provincia seleccionada y el texto de bÃºsqueda. */
     filteredDistricts() {
       if (!this.formData.city) return [];
       const all = DISTRICTS_BY_PROVINCE[this.formData.city] || [];
@@ -128,7 +130,7 @@ export default {
     },
 
     closeDistrictDropdown() {
-      // Timeout para permitir que el click en una opción se registre antes de cerrar.
+      // Timeout para permitir que el click en una opciÃ³n se registre antes de cerrar.
       setTimeout(() => {
         this.isDistrictDropdownOpen = false;
       }, 200);
@@ -186,53 +188,39 @@ export default {
       // El correo institucional es el usuario de la cuenta municipal.
       const username = this.formData.institutionalEmail.trim();
 
+      // Guardar los datos del registro para crear la cuenta DESPUES del pago.
+      const pending = {
+        username,
+        password: this.formData.password,
+        municipalityName: this.formData.municipalityName.trim(),
+        city: this.formData.city.trim(),
+        district: this.formData.district.trim(),
+        institutionalEmail: username,
+        phone: this.normalizeMunicipalityPhone(this.formData.phonenumber),
+        profileImage: this.formData.profileImage
+      };
+      sessionStorage.setItem("pendingMunicipalitySignup", JSON.stringify(pending));
+
       try {
-        // 1) Crear credenciales en IAM con rol de municipalidad
-        const signUpResponse = await this.authService.signUp({
-          username,
-          password: this.formData.password,
-          roles: [MUNICIPALITY_ROLE]
-        });
-        if (![200, 201].includes(signUpResponse?.status)) {
-          this.error = signUpResponse?.data?.message || this.$t("userForm.create_account_error");
-          return;
-        }
-
-        // 2) Iniciar sesión para obtener id de usuario y token
-        const loginResponse = await this.authService.signInUser(username, this.formData.password);
-        if (loginResponse?.status !== 200) {
-          this.error = this.$t("userForm.login_after_signup_error");
-          return;
-        }
-        const user = loginResponse.data;
-        sessionStorage.setItem("userEmail", user.username);
-        sessionStorage.setItem("userRole", MUNICIPALITY_ROLE);
-        sessionStorage.setItem("authToken", user.token);
-        sessionStorage.setItem("iamUserId", user.id);
-        sessionStorage.setItem("userId", user.id);
-
-        // 3) Crear el perfil de la municipalidad (datos de negocio)
-        const profileResponse = await this.userApiService.createMunicipality({
-          municipalityName: this.formData.municipalityName.trim(),
-          city: this.formData.city.trim(),
-          district: this.formData.district.trim(),
+        // Crear la sesion de pago (suscripcion mensual) y redirigir a Stripe Checkout.
+        const origin = window.location.origin;
+        const checkoutResponse = await this.paymentApiService.createCheckoutSession({
           institutionalEmail: username,
-          phone: this.normalizeMunicipalityPhone(this.formData.phonenumber),
-          userId: String(user.id),
-          profileImage: this.formData.profileImage
+          municipalityName: pending.municipalityName,
+          successUrl: `${origin}/payment-success`,
+          cancelUrl: `${origin}/payment-cancel`
         });
 
-        if ([200, 201].includes(profileResponse?.status)) {
-          sessionStorage.setItem("municipalityInfo", JSON.stringify(profileResponse.data));
-          this.success = this.$t("userForm.account_created");
-          setTimeout(() => this.$router.push({ path: "/dashboard" }), 800);
+        const url = checkoutResponse?.data?.url;
+        if (url) {
+          window.location.href = url;
         } else {
-          this.error = profileResponse?.data?.message || this.$t("userForm.save_profile_error");
+          this.error = checkoutResponse?.data?.message || "No se pudo iniciar el pago. Intenta nuevamente.";
+          this.isSubmitting = false;
         }
       } catch (error) {
-        console.error("Registration error:", error);
-        this.error = error?.response?.data?.message || this.$t("userForm.unexpected_error");
-      } finally {
+        console.error("Payment error:", error);
+        this.error = error?.response?.data?.message || "No se pudo iniciar el pago.";
         this.isSubmitting = false;
       }
     },
@@ -285,7 +273,7 @@ export default {
             autocomplete="off"
           />
           <span class="combobox-arrow">&#9662;</span>
-          <!-- Valor real para validación -->
+          <!-- Valor real para validaciÃ³n -->
           <input type="hidden" :value="formData.district" required />
         </div>
         <ul class="district-dropdown" v-show="isDistrictDropdownOpen && filteredDistricts.length > 0">
@@ -305,13 +293,13 @@ export default {
       </div>
     </div>
 
-    <!-- Fila 3: Email institucional + Teléfono -->
+    <!-- Fila 3: Email institucional + TelÃ©fono -->
     <div class="flex">
       <input :placeholder="$t('userForm.institutional_email')" class="input-style" type="email" required v-model="formData.institutionalEmail" />
       <input :placeholder="$t('userForm.municipality_phone')" class="input-style" type="tel" required maxlength="12" v-model="formData.phonenumber" />
     </div>
 
-    <!-- Fila 4: Contraseñas -->
+    <!-- Fila 4: ContraseÃ±as -->
     <div class="flex">
       <input :placeholder="$t('userForm.password')" class="input-style" type="password" required v-model="formData.password" />
       <input :placeholder="$t('userForm.confirm_password')" class="input-style" type="password" required v-model="confirmPassword" />

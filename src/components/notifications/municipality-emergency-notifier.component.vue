@@ -177,9 +177,10 @@ export default {
         .trim();
     },
     belongsToMunicipalityDistrict(alert) {
-      if (!this.municipalityDistrict) return true;
-      if (!alert?.district && alert?.reportId) return false;
-      if (!alert?.district) return true;
+      // Si aun no sabemos el distrito de la municipalidad, no mostrar nada (evita fugas al iniciar sesion).
+      if (!this.municipalityDistrict) return false;
+      // Alerta sin distrito (ej. SOS en una zona sin municipalidad con cobertura): no es atribuible -> no mostrar.
+      if (!alert?.district) return false;
       return this.normalizeDistrict(alert.district) === this.normalizeDistrict(this.municipalityDistrict);
     },
     registerEmergency(alert) {

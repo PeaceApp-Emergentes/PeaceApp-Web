@@ -66,6 +66,7 @@ export default {
       <li><router-link to="/map"><img src="../../assets/Map.png" alt="Map" /></router-link></li>
       <li v-if="!canUseDashboard"><button class="emergency-btn" @click="sendGeneralEmergency">{{ $t("emergency.button") }}</button></li>
       <li><router-link :to="notificationsRoute"><img src="../../assets/Notification.png" :alt="canUseDashboard ? 'Dashboard' : 'Notification'" /></router-link></li>
+      <li v-if="canUseDashboard"><router-link to="/subscription"><img src="../../assets/Config.png" :alt="$t('subscription.navLink')" /></router-link></li>
       <li><router-link to="/profile"><img src="../../assets/Profile.png" alt="Profile" /></router-link></li>
     </ul>
   </nav>
