@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# SPA fallback: cualquier ruta -> index.html (Vue Router resuelve del lado del cliente)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

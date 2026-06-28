@@ -1,7 +1,11 @@
 export const environment = {
-    production: false,
-    baseUrl: "http://localhost:8080/api/v1",
-    // US36: WebSocket directo al ReportService (NO pasa por el Gateway).
-    // El ReportService corre en el puerto 8083 y expone /ws/alerts.
-    websocketUrl: "ws://localhost:8083/ws/alerts"
+    production: true,
+    // Backend de PRODUCCION (gateway detras del dominio, HTTPS).
+    baseUrl: "https://peaceapp-backend.duckdns.org/api/v1",
+    websocketUrl: "wss://peaceapp-backend.duckdns.org/ws/alerts"
+
+    // Desarrollo local:
+    // production: false,
+    // baseUrl: "http://localhost:8080/api/v1",
+    // websocketUrl: "ws://localhost:8083/ws/alerts"
 };
