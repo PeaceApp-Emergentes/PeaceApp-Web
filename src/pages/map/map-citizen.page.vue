@@ -125,7 +125,7 @@ export default {
     }
   },
   mounted() {
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+    mapboxgl.accessToken = "pk.eyJ1IjoidG9seW5vcmllZ2EiLCJhIjoiY205dmtnMGdsMG0zNzJqb296YjcwcXY5dCJ9.2ljsRbhPiFb3cy5-HQUo0g";
     this.getCurrentLocation();
     if (this.isMunicipality) this.loadMunicipalityDistrict();
     if (!this.isMunicipality) {
